@@ -7,7 +7,7 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 plugins {
     val kotlinVersion = "1.3.71"
     kotlin("jvm") version kotlinVersion
-//    kotlin("kapt") version kotlinVersion
+    kotlin("kapt") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("com.adarshr.test-logger") version "2.0.0"
@@ -23,17 +23,9 @@ repositories {
 dependencies {
 
     implementation(kotlin("stdlib-jdk8"))
-    // implementation(kotlin("reflect"))
-    // implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5")
+    implementation(kotlin("reflect"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
-
-    implementation("com.amazonaws:aws-lambda-java-core:1.2.0")
-    implementation("com.amazonaws:aws-lambda-java-events:2.2.7")
-
-    implementation(platform("software.amazon.awssdk:bom:2.5.29"))
-    implementation("software.amazon.awssdk:iam")
-    implementation("software.amazon.awssdk:ec2")
-    implementation("software.amazon.awssdk:s3")
 
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:1.7.9")
