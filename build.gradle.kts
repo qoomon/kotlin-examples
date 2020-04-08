@@ -53,8 +53,6 @@ dependencies {
     testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.9") // WORKAROUND https://github.com/mockk/mockk/issues/397
 }
 
-val jvmTargetVersion = JavaVersion.VERSION_11.toString()
-
 tasks {
 
     build {
@@ -75,8 +73,7 @@ tasks {
 
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = jvmTargetVersion
-            sourceCompatibility = jvmTargetVersion
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
         }
     }
 
