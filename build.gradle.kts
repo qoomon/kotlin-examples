@@ -27,6 +27,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
 
+    implementation("org.quartz-scheduler:quartz:2.3.2")
+    implementation("com.cronutils:cron-utils:9.0.1")
+
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:1.7.9")
     runtimeOnly("org.slf4j:slf4j-api:1.7.30")

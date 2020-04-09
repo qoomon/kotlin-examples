@@ -27,7 +27,7 @@ class TestUtilsKtTest {
                 TestCase(2))
 
             // When
-            val dynamicTests = dynamicTests(testDisplayName, testMethod) {
+            val dynamicTests = dynamicTests(testMethod, testDisplayName) {
                 testCases
             }
 

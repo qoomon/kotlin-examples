@@ -6,7 +6,11 @@ import strikt.api.Assertion
 import strikt.api.ExpectationBuilder
 import strikt.api.expectThat
 
-fun <T> dynamicTests(displayName: T.() -> String, test: T.() -> Unit, testCases: () -> List<T>): List<DynamicTest> {
+fun <T> dynamicTests(
+    test: T.() -> Unit,
+    displayName: T.() -> String = { "$this" },
+    testCases: () -> List<T>
+): List<DynamicTest> {
     return testCases().map { parameters ->
         dynamicTest(displayName(parameters)) {
             test(parameters)
