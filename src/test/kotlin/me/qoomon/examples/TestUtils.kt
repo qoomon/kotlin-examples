@@ -3,13 +3,11 @@ package me.qoomon.examples
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import strikt.api.Assertion
-import strikt.api.ExpectationBuilder
-import strikt.api.expectThat
 
-fun <T> dynamicTests(
+fun <T> parameterizedTest(
     test: T.() -> Unit,
-    displayName: T.() -> String = { "$this" },
-    testCases: () -> List<T>
+    testCases: () -> Collection<T>,
+    displayName: T.() -> String = { this.toString() }
 ): List<DynamicTest> {
     return testCases().map { parameters ->
         dynamicTest(displayName(parameters)) {
@@ -63,39 +61,5 @@ fun <R> Assertion.Builder<Result<R>>.isSuccess(): Assertion.Builder<R> {
             // WORKAROUND - END
 
             getOrThrow()
-        }
-}
-
-/**
- * Asserts that the assertion execution did not throw any exception. The assertion fails
- * if execution throws an exception.
- */
-fun expectPass(assertion: () -> Unit) {
-    expectThat(runCatching(assertion)).describedAs("assertion succeeded")
-        .assert("Assertion") { subject ->
-            when {
-                subject.isSuccess -> pass()
-                else -> fail(
-                    description = subject.exceptionOrNull()!!.message,
-                    cause = subject.exceptionOrNull()!!
-                )
-            }
-        }
-}
-
-/**
- * Asserts that the assertion execution did not throw any exception. The assertion fails
- * if execution throws an exception.
- */
-fun ExpectationBuilder.pass(assertion: () -> Unit) {
-    that(runCatching(assertion)).describedAs("assertion succeeded")
-        .assert("Assertion") { subject ->
-            when {
-                subject.isSuccess -> pass()
-                else -> fail(
-                    description = subject.exceptionOrNull()!!.message,
-                    cause = subject.exceptionOrNull()!!
-                )
-            }
         }
 }

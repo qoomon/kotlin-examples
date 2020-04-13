@@ -4,10 +4,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import org.opentest4j.AssertionFailedError
 import strikt.api.expect
 import strikt.api.expectThat
-import strikt.assertions.*
+import strikt.assertions.hasSize
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.message
 
 class TestUtilsKtTest {
 
@@ -21,15 +23,20 @@ class TestUtilsKtTest {
 
             val testDisplayName: TestCase.() -> String = { "$param" }
             val testMethod: TestCase.() -> Unit = mockk(relaxed = true)
-            val testCases = listOf(
-                TestCase(0),
-                TestCase(1),
-                TestCase(2))
+            val testCases = {
+                listOf(
+                    TestCase(0),
+                    TestCase(1),
+                    TestCase(2)
+                )
+            }
 
             // When
-            val dynamicTests = dynamicTests(testMethod, testDisplayName) {
-                testCases
-            }
+            val dynamicTests = parameterizedTest(
+                test = testMethod,
+                testCases = testCases,
+                displayName = testDisplayName
+            )
 
             dynamicTests.forEach {
                 it.executable.execute()
@@ -83,24 +90,6 @@ class TestUtilsKtTest {
             expectThat(result).isSuccess().and {
                 isA<String>()
                 isEqualTo("done")
-            }
-        }
-
-        @Test
-        fun expectPass() {
-            // Given
-            val assertion = { assert(false) { "Boom!" } }
-
-            // When
-            val result = runCatching {
-                expectPass(assertion)
-            }
-
-            // Then
-            expectThat(result).isFailure().and {
-                isA<AssertionFailedError>()
-                cause.isA<AssertionError>()
-                cause.get { this?.message }.isEqualTo("Boom!")
             }
         }
     }

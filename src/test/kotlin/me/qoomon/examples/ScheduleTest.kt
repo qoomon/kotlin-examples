@@ -4,7 +4,6 @@ import com.cronutils.model.CronType
 import com.cronutils.model.definition.CronDefinitionBuilder
 import com.cronutils.model.time.ExecutionTime
 import com.cronutils.parser.CronParser
-import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.TestFactory
 import org.quartz.CronExpression
 import strikt.api.expectThat
@@ -21,73 +20,122 @@ fun Date.toLocalDate(): LocalDateTime = Instant.ofEpochMilli(this.time).atZone(Z
 class ScheduleTest {
 
     @TestFactory
-    fun `quartz CronExpression`(): List<DynamicTest> {
-        return dynamicTests({
-            // Given
-            val cronExpression = CronExpression(cronString)
+    fun `quartz CronExpression`() = parameterizedTest({
 
-            // When
-            val execute = when (lastExecution) {
-                null -> true
-                else -> when (val nextExecution =
-                    cronExpression.getNextValidTimeAfter(lastExecution.toDate())?.toLocalDate()) {
-                    null -> false
-                    else -> now.isAfter(nextExecution)
-                }
+        // Given
+        val cronExpression = CronExpression(given.cronString)
+
+        // When
+        val execute = when (given.lastExecution) {
+            null -> true
+            else -> when (val nextExecution =
+                cronExpression.getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()) {
+                null -> false
+                else -> given.now.isAfter(nextExecution)
             }
+        }
 
-            // Then
-            expectThat(execute).isEqualTo(expectedExecute)
+        // Then
+        expectThat(execute).isEqualTo(expected.execute)
 
-        }) {
-            data class TestCase(
-                val cronString: String,
-                val now: LocalDateTime,
-                val lastExecution: LocalDateTime,
-                val expectedExecute: Boolean
-            )
+    },
+        testCases = {
+            data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
+            data class Expected(val execute: Boolean)
+            data class Case(val given: Given, val expected: Expected)
 
             val now = LocalDateTime.parse("2020-01-01T00:00")
+
             listOf(
-                TestCase("0 * * * * ?", now, now.minusMinutes(10), true),
-                TestCase("0 0 * * * ?", now, now.minusMinutes(10), false)
+                Case(
+                    Given("0 * * * * ?", now, now.minusMinutes(10)),
+                    Expected(true)
+                ),
+                Case(
+                    Given("0 0 * * * ?", now, now.minusMinutes(10)),
+                    Expected(false)
+                )
             )
-        }
-    }
+        })
+
 
     @TestFactory
-    fun `cron-utils CronExpression`(): List<DynamicTest> {
-        return dynamicTests({
-            // Given
-            var cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
-            val cronExpression = cronParser.parse(cronString)!!
-            val cronExecutionTime = ExecutionTime.forCron(cronExpression)!!
+    fun `quartz CronExpression  2`() = parameterizedTest({
 
-            // When
-            val execute = when (lastExecution) {
-                null -> true
-                else -> when (val nextExecution = cronExecutionTime.nextExecution(lastExecution).orElse(null) ?: null) {
-                    null -> false
-                    else -> now.isAfter(nextExecution)
-                }
+        // Given
+        val cronExpression = CronExpression(given.cronString)
+
+        // When
+        val execute = when (given.lastExecution) {
+            null -> true
+            else -> when (val nextExecution =
+                cronExpression.getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()) {
+                null -> false
+                else -> given.now.isAfter(nextExecution)
             }
+        }
 
-            // Then
-            expectThat(execute).isEqualTo(expectedExecute)
+        // Then
+        expectThat(execute).isEqualTo(expected.execute)
 
-        }) {
-            data class TestCase(
-                val cronString: String,
-                val now: ZonedDateTime,
-                val lastExecution: ZonedDateTime,
-                val expectedExecute: Boolean
+    },
+        testCases = {
+            data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
+            data class Expected(val execute: Boolean)
+            data class Case(val given: Given, val expected: Expected)
+
+            val now = LocalDateTime.parse("2020-01-01T00:00")
+
+            listOf(
+                Case(
+                    Given("0 * * * * ?", now, now.minusMinutes(10)),
+                    Expected(true)
+                ),
+                Case(
+                    Given("0 0 * * * ?", now, now.minusMinutes(10)),
+                    Expected(false)
+                )
             )
+        })
+
+
+    @TestFactory
+    fun `cron-utils CronExpression`() = parameterizedTest({
+
+        // Given
+        val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
+        val cronExpression = cronParser.parse(given.cronString)!!
+        val cronExecutionTime = ExecutionTime.forCron(cronExpression)!!
+
+        // When
+        val execute = when (given.lastExecution) {
+            null -> true
+            else -> when (val nextExecution =
+                cronExecutionTime.nextExecution(given.lastExecution).orElse(null) ?: null) {
+                null -> false
+                else -> given.now.isAfter(nextExecution)
+            }
+        }
+
+        // Then
+        expectThat(execute).isEqualTo(expected.execute)
+
+    },
+        testCases = {
+            data class Given(val cronString: String, val now: ZonedDateTime, val lastExecution: ZonedDateTime?)
+            data class Expected(val execute: Boolean)
+            data class TestCase(val given: Given, val expected: Expected)
 
             val now = ZonedDateTime.parse("2020-01-01T00:00:00Z")
             listOf(
-                TestCase("0 * * * * ?", now, now.minusMinutes(10), true),
-                TestCase("0 0 * * * ?", now, now.minusSeconds(10), false)
+                TestCase(
+                    Given("0 * * * * ?", now, now.minusMinutes(10)),
+                    Expected(true)
+                ),
+                TestCase(
+                    Given("0 0 * * * ?", now, now.minusSeconds(10)),
+                    Expected(false)
+                )
             )
-        }
-    }
+        })
 }
