@@ -38,14 +38,27 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
     runtimeOnly("com.amazonaws:aws-lambda-java-log4j2:1.0.0")
 
+    // Database Dependencies
+    val exposedVersion = "0.23.1"
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    runtimeOnly("org.postgresql:postgresql:42.2.2")
+
     // Test Dependencies
     val junitVersion = "5.6.1"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation("io.strikt:strikt-core:0.24.0")
-    testImplementation("io.mockk:mockk:1.9.3")
-    testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.9") // WORKAROUND https://github.com/mockk/mockk/issues/397
+    testImplementation("io.mockk:mockk:1.9.3") {
+        testRuntimeOnly("net.bytebuddy:byte-buddy:1.10.9") // WORKAROUND https://github.com/mockk/mockk/issues/397
+    }
+
+    val testContainersVersion = "1.14.0"
+    testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
 tasks {

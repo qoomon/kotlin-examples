@@ -20,7 +20,7 @@ fun Date.toLocalDate(): LocalDateTime = Instant.ofEpochMilli(this.time).atZone(Z
 class ScheduleTest {
 
     @TestFactory
-    fun `quartz CronExpression`() = parameterizedTest({
+    fun `quartz CronExpression`() = parameterizedTest(test = {
 
         // Given
         val cronExpression = CronExpression(given.cronString)
@@ -39,7 +39,7 @@ class ScheduleTest {
         expectThat(execute).isEqualTo(expected.execute)
 
     },
-        testCases = {
+        cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
             data class Expected(val execute: Boolean)
             data class Case(val given: Given, val expected: Expected)
@@ -60,7 +60,7 @@ class ScheduleTest {
 
 
     @TestFactory
-    fun `quartz CronExpression  2`() = parameterizedTest({
+    fun `quartz CronExpression  2`() = parameterizedTest(test = {
 
         // Given
         val cronExpression = CronExpression(given.cronString)
@@ -79,7 +79,7 @@ class ScheduleTest {
         expectThat(execute).isEqualTo(expected.execute)
 
     },
-        testCases = {
+        cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
             data class Expected(val execute: Boolean)
             data class Case(val given: Given, val expected: Expected)
@@ -100,7 +100,7 @@ class ScheduleTest {
 
 
     @TestFactory
-    fun `cron-utils CronExpression`() = parameterizedTest({
+    fun `cron-utils CronExpression`() = parameterizedTest(test = {
 
         // Given
         val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
@@ -121,7 +121,7 @@ class ScheduleTest {
         expectThat(execute).isEqualTo(expected.execute)
 
     },
-        testCases = {
+        cases = {
             data class Given(val cronString: String, val now: ZonedDateTime, val lastExecution: ZonedDateTime?)
             data class Expected(val execute: Boolean)
             data class TestCase(val given: Given, val expected: Expected)
