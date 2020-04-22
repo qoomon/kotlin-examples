@@ -10,7 +10,7 @@ fun <T> parameterizedTest(
 ): List<DynamicTest> {
     return cases().map { parameters ->
         dynamicTest(displayName(parameters, parameters)) {
-            test(parameters, parameters)
+            parameters.test(parameters)
         }
     }
 }

@@ -57,7 +57,7 @@ fun <R> Assertion.Builder<Result<R>>.isSuccess(): Assertion.Builder<R> {
  */
 fun <R> Assertion.Builder<R>.pass(check: R.(R) -> Unit): Assertion.Builder<R> {
     return assert("passes check") { value ->
-        runCatching { check(value, value) }.apply {
+        runCatching { value.check(value) }.apply {
             when {
                 isSuccess -> pass()
                 else -> {
