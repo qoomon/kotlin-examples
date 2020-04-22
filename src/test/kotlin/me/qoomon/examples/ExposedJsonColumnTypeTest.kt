@@ -1,6 +1,7 @@
 package me.qoomon.examples
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.builtins.list
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
@@ -19,6 +20,7 @@ import strikt.api.expectThat
 import strikt.assertions.isNotNull
 import java.util.*
 
+
 class ExposedJsonColumnTypeTest {
 
     @Serializable
@@ -29,12 +31,14 @@ class ExposedJsonColumnTypeTest {
 
     object UsersTable : UUIDTable("users") {
         val name = varchar("name", 50).index()
+        val scopes = jsonb("scopes", String.serializer().list)
         val role = jsonb("role", Role.serializer())
         val permissions = jsonb("permissions", Permission.serializer().list)
     }
 
     class UserEntity(id: EntityID<UUID>) : UUIDEntity(id) {
         var name by UsersTable.name
+        var scopes by UsersTable.scopes
         var role by UsersTable.role
         var permissions by UsersTable.permissions
 
@@ -48,6 +52,7 @@ class ExposedJsonColumnTypeTest {
             addLogger(StdOutSqlLogger)
             UserEntity.new {
                 name = "John"
+                scopes = listOf("auth", "booking")
                 role = Role("Admin", listOf(Permission("DB"), Permission("FTP")))
                 permissions = listOf(Permission("DB"), Permission("FTP"))
             }
@@ -81,7 +86,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<String>( "permissions", "0", "name").eq("DB")
+                    UsersTable.role.json<String>("permissions", "0", "name").eq("DB")
                 }.firstOrNull()
 
                 // Then
@@ -93,7 +98,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<Any>( "permissions", "0").isNotNull()
+                    UsersTable.role.json<Any>("permissions", "0").isNotNull()
                 }.firstOrNull()
 
                 // Then
@@ -103,7 +108,6 @@ class ExposedJsonColumnTypeTest {
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
             }
         }
-
 
 
     }

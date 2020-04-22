@@ -8,7 +8,10 @@ import org.jetbrains.exposed.sql.Function
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import org.postgresql.util.PGobject
 
-class JsonbColumnType<T : Any>(private val stringify: (T) -> String, private val parse: (String) -> T) : ColumnType() {
+class JsonbColumnType<T : Any>(
+    private val stringify: (T) -> String,
+    private val parse: (String) -> T
+) : ColumnType() {
     override fun sqlType() = "jsonb"
 
     override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
@@ -75,6 +78,18 @@ inline fun <reified T> Column<*>.json(vararg jsonPath: String): JsonValue<T> {
     }
     return JsonValue(this, columnType, jsonPath.toList())
 }
+
+
+///** Checks if this expression contains some [t] value. */
+//infix fun <T> JsonValue<T>.contains(t: T): JsonContainsOp =
+//    JsonContainsOp(this, SqlExpressionBuilder.run { this@contains.wrap(t) })
+//
+//
+///** Checks if this expression contains some [other] expression. */
+//infix fun <T, S1 : T?, S2 : T?> JsonValue<in S1>.contains(other: Expression<in S2>): JsonContainsOp =
+//    JsonContainsOp(this, other)
+//
+//class JsonContainsOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "?")
 
 /**
  * jsonb column with kotlinx.serialization as JSON serializer
