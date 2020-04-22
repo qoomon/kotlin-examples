@@ -3,6 +3,8 @@ package me.qoomon.examples
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
+import me.qoomon.examples.JsonbColumnType.Companion.JSONB
+import me.qoomon.examples.JsonbColumnType.Companion.TEXT
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Function
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
@@ -12,7 +14,7 @@ class JsonbColumnType<T : Any>(
     private val stringify: (T) -> String,
     private val parse: (String) -> T
 ) : ColumnType() {
-    override fun sqlType() = "jsonb"
+    override fun sqlType() = JSONB
 
     override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
         super.setParameter(stmt, index, value.let {
@@ -34,7 +36,25 @@ class JsonbColumnType<T : Any>(
 
     @Suppress("UNCHECKED_CAST")
     override fun notNullValueToDB(value: Any) = stringify(value as T)
+
+    companion object {
+        const val JSONB = "JSONB"
+        const val TEXT = "TEXT"
+    }
 }
+
+fun <T : Any> Table.jsonb(name: String, stringify: (T) -> String, parse: (String) -> T): Column<T> =
+    registerColumn(name, JsonbColumnType(stringify, parse))
+
+/**
+ * jsonb column with kotlinx.serialization as JSON serializer
+ */
+fun <T : Any> Table.jsonb(
+    name: String,
+    serializer: KSerializer<T>,
+    json: Json = Json(JsonConfiguration.Stable)
+): Column<T> = jsonb(name, { json.stringify(serializer, it) }, { json.parse(serializer, it) })
+
 
 class JsonValue<T>(
     val expr: Expression<*>,
@@ -42,9 +62,13 @@ class JsonValue<T>(
     val jsonPath: List<String>
 ) : Function<T>(columnType) {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
-        append("(")
+        val castJson = columnType.sqlType() != JSONB
+        if (castJson) append("(")
         append(expr)
-        append("#>>'{${jsonPath.joinToString { escapeFieldName(it) }}}')::${columnType.sqlType()}")
+        append(" #>")
+        if (castJson) append(">")
+        append(" '{${jsonPath.joinToString { escapeFieldName(it) }}}'")
+        if (castJson) append(")::${columnType.sqlType()}")
     }
 
     companion object {
@@ -62,40 +86,26 @@ class JsonValue<T>(
     }
 }
 
-fun <T : Any> Table.jsonb(name: String, stringify: (T) -> String, parse: (String) -> T): Column<T> =
-    registerColumn(name, JsonbColumnType(stringify, parse))
-
 inline fun <reified T> Column<*>.json(vararg jsonPath: String): JsonValue<T> {
     val columnType = when (T::class) {
         Boolean::class -> BooleanColumnType()
         Int::class -> IntegerColumnType()
         Float::class -> FloatColumnType()
         String::class -> TextColumnType()
-        Any::class -> object : TextColumnType() {
-            override fun sqlType() = "jsonb"
-        }
+        Any::class -> JsonbColumnType({ error("Unexpected call") }, { error("Unexpected call") })
+
         else -> throw IllegalArgumentException("Type ${T::class} not supported for json fields.")
     }
     return JsonValue(this, columnType, jsonPath.toList())
 }
 
 
-///** Checks if this expression contains some [t] value. */
-//infix fun <T> JsonValue<T>.contains(t: T): JsonContainsOp =
-//    JsonContainsOp(this, SqlExpressionBuilder.run { this@contains.wrap(t) })
-//
-//
-///** Checks if this expression contains some [other] expression. */
-//infix fun <T, S1 : T?, S2 : T?> JsonValue<in S1>.contains(other: Expression<in S2>): JsonContainsOp =
-//    JsonContainsOp(this, other)
-//
-//class JsonContainsOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "?")
+class JsonContainsOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "??")
 
-/**
- * jsonb column with kotlinx.serialization as JSON serializer
- */
-fun <T : Any> Table.jsonb(
-    name: String,
-    serializer: KSerializer<T>,
-    json: Json = Json(JsonConfiguration.Stable)
-): Column<T> = jsonb(name, { json.stringify(serializer, it) }, { json.parse(serializer, it) })
+/** Checks if this expression contains some [t] value. */
+infix fun <T> JsonValue<T>.contains(t: T): JsonContainsOp =
+    JsonContainsOp(this, SqlExpressionBuilder.run { this@contains.wrap(t) })
+
+/** Checks if this expression contains some [other] expression. */
+infix fun <T, S1 : T?, S2 : T?> JsonValue<in S1>.contains(other: Expression<in S2>): JsonContainsOp =
+    JsonContainsOp(this, other)

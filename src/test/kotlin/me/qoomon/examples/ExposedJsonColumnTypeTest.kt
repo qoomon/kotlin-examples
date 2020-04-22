@@ -1,8 +1,8 @@
 package me.qoomon.examples
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.builtins.list
+import kotlinx.serialization.builtins.serializer
 import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
@@ -11,6 +11,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.statements.jdbc.iterate
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -60,6 +61,7 @@ class ExposedJsonColumnTypeTest {
 
         // When
         transaction(database) {
+
             addLogger(StdOutSqlLogger)
 
             run {
@@ -107,6 +109,67 @@ class ExposedJsonColumnTypeTest {
                 println(" role: ${user?.role}")
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
             }
+
+            run {
+                val user = UserEntity.find {
+                    UsersTable.role.json<String>().isNotNull()
+                }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
+                println("User: $user")
+                println(" role: ${user?.role}")
+                println(" permissions: ${user?.permissions?.joinToString(", ")}")
+            }
+
+            run {
+                val user = UserEntity.find {
+                    UsersTable.role.json<Any>("scopes").contains("auth")
+                }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
+                println("User: $user")
+                println(" role: ${user?.role}")
+                println(" permissions: ${user?.permissions?.joinToString(", ")}")
+            }
+        }
+
+
+    }
+
+    @Test
+    fun `jsonb column 2`() {
+        // Given
+        val userEntity = transaction(database) {
+            addLogger(StdOutSqlLogger)
+            UserEntity.new {
+                name = "John"
+                scopes = listOf("auth", "booking")
+                role = Role("Admin", listOf(Permission("DB"), Permission("FTP")))
+                permissions = listOf(Permission("DB"), Permission("FTP"))
+            }
+        }
+
+        // When
+        transaction(database) {
+
+            addLogger(StdOutSqlLogger)
+
+            run {
+                exec("""SELECT users.* FROM users WHERE users."scopes" ?? 'auth'""") {
+                    val metaData = it.getMetaData()
+                    val columnCount = metaData.columnCount
+
+                    val header = (1..columnCount).map { metaData.getColumnLabel(it) }.joinToString()
+                    println("header: $header")
+
+                    it.iterate {
+                        val row = (1..columnCount).map { getString(it) }.joinToString()
+                        println("row: $row")
+                    }
+                }
+            }
         }
 
 
@@ -140,4 +203,3 @@ class ExposedJsonColumnTypeTest {
         }
     }
 }
-
