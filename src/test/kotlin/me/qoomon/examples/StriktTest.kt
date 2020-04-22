@@ -10,7 +10,7 @@ class StriktTest {
     @Test
     fun `expectThat satisfy`() {
         expectThat("foo") {
-            pass { assert(it == "foox") { "name is wrong" } }
+            pass { assert(it == "foo") { "name is wrong" } }
         }
     }
 

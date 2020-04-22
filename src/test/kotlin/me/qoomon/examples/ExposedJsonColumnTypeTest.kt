@@ -15,9 +15,11 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.PostgreSQLContainer
+import strikt.api.expectThat
+import strikt.assertions.isNotNull
 import java.util.*
 
-class ExposedPostgresJsonbTest {
+class ExposedJsonColumnTypeTest {
 
     @Serializable
     data class Permission(val name: String)
@@ -57,6 +59,9 @@ class ExposedPostgresJsonbTest {
 
             run {
                 val user = UserEntity.findById(userEntity.id)
+
+                // Then
+                expectThat(user).isNotNull()
                 println("User: $user")
                 println(" role: ${user?.role}")
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
@@ -66,6 +71,9 @@ class ExposedPostgresJsonbTest {
                 val user = UserEntity.find {
                     UsersTable.role.json<String>("name").eq("Admin")
                 }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
                 println("User: $user")
                 println(" role: ${user?.role}")
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
@@ -75,6 +83,9 @@ class ExposedPostgresJsonbTest {
                 val user = UserEntity.find {
                     UsersTable.role.json<String>( "permissions", "0", "name").eq("DB")
                 }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
                 println("User: $user")
                 println(" role: ${user?.role}")
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
@@ -84,13 +95,16 @@ class ExposedPostgresJsonbTest {
                 val user = UserEntity.find {
                     UsersTable.role.json<Any>( "permissions", "0").isNotNull()
                 }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
                 println("User: $user")
                 println(" role: ${user?.role}")
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
             }
         }
 
-        // Then
+
 
     }
 
