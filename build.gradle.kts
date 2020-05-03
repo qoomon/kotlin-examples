@@ -4,28 +4,41 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
+buildscript {
+    dependencies {
+        classpath("org.koin:koin-gradle-plugin:2.1.5")
+    }
+}
+
+apply(plugin = "koin")
 plugins {
     val kotlinVersion = "1.3.71"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
+
     id("com.github.johnrengelman.shadow") version "5.2.0"
     id("com.adarshr.test-logger") version "2.0.0"
     id("com.dorongold.task-tree") version "1.5"
     id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+
     application
-//    idea
+
+    idea
 }
 
 repositories {
-    mavenCentral()
     jcenter()
+    mavenCentral()
 }
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5")
+
+    // Dependency Injection
+    implementation("org.koin:koin-core:2.1.5") // ensure koin plugin version is equal
 
     // Cron Dependencies
     implementation("org.quartz-scheduler:quartz:2.3.2")
@@ -53,8 +66,9 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    runtimeOnly("org.postgresql:postgresql:42.2.2")
-    implementation("org.postgresql:postgresql:42.2.2")
+    implementation("org.postgresql:postgresql:42.2.12")
+    implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.4")
+    implementation("com.zaxxer:HikariCP:3.2.0")
 
     // Test Dependencies
     val junitVersion = "5.6.1"
@@ -75,10 +89,27 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
+// <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
+project.configurations.implementation.get().isCanBeResolved = true
+project.configurations.runtimeOnly.get().isCanBeResolved = true
+// </WORKAROUND>
+
 tasks {
 
-    build {
-        dependsOn("shadowJar")
+    withType<KotlinCompile> {
+        kotlinOptions {
+            // allWarningsAsErrors = true
+            jvmTarget = JavaVersion.VERSION_1_8.toString()
+            freeCompilerArgs = listOf(
+                "-module-name", project.name,
+                "-Xopt-in=kotlin.RequiresOptIn",
+                "-Xopt-in=kotlin.contracts.ExperimentalContracts",
+                "-Xopt-in=kotlin.time.ExperimentalTime",
+                "-Xinline-classes",
+                "-Xallow-kotlin-package",
+                "-Xallow-result-return-type"
+            )
+        }
     }
 
     test {
@@ -89,20 +120,55 @@ tasks {
         }
     }
 
-    jar {
-        archiveBaseName.set("lambda")
+    withType<Jar> {
+        archiveBaseName.set(project.name)
     }
 
-    withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_1_8.toString()
-        }
+    val jarDependencies = register<Jar>("jarDependencies") {
+        archiveClassifier.set("dependencies")
+        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
+    }
+
+    val jarApp = register<Jar>("jarApp") {
+        archiveClassifier.set("app")
+        from(sourceSets.main.get().output)
+    }
+
+    jar {
+        archiveClassifier.set("all")
+        with(jarDependencies.get())
     }
 
     withType<ShadowJar> {
-        archiveBaseName.set(project.tasks.jar.get().archiveBaseName)
+        archiveBaseName.set(project.name)
         mergeServiceFiles()
-        minimize()
+//        relocate("org.postgresql.util", "shadow.org.postgresql.util")
+        minimize {
+//            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
+        }
+        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
+        configurations = listOf(
+            project.configurations.implementation.get(),
+            project.configurations.runtimeOnly.get()
+        )
+        // </WORKAROUND>
+    }
+
+    val shadowJarDependencies = register<ShadowJar>("shadowJarDependencies") {
+        archiveClassifier.set("dependencies-shadow")
+        configurations = listOf(project.configurations.runtimeClasspath.get())
+        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
+    }
+
+    val shadowJarApp = register<ShadowJar>("shadowJarApp") {
+        archiveClassifier.set("app-shadow")
+        configurations = listOf(project.configurations.runtime.get())
+        from(sourceSets.main.get().output)
+    }
+
+    shadowJar {
+        archiveClassifier.set("all-shadow")
     }
 
     application {
