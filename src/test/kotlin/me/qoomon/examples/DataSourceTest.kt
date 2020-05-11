@@ -1,6 +1,5 @@
 package me.qoomon.examples
 
-
 import com.impossibl.postgres.jdbc.PGDataSource
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.StdOutSqlLogger
@@ -12,6 +11,8 @@ import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
 import org.testcontainers.containers.PostgreSQLContainer
 import strikt.api.expectThat
+import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
 
 class DataSourceTest {
 
@@ -30,13 +31,14 @@ class DataSourceTest {
     @Test
     fun `expect reconnect after failure`() {
         // GIVEN
+
 // implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.4")
         val dataSource = PGDataSource().apply {
-            serverName = postgresContainer.getContainerIpAddress()
+            serverName = postgresContainer.containerIpAddress
             port = postgresContainer.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
-            databaseName = postgresContainer.getDatabaseName()
-            user = postgresContainer.getUsername()
-            password = postgresContainer.getPassword()
+            databaseName = postgresContainer.databaseName
+            user = postgresContainer.username
+            password = postgresContainer.password
             networkTimeout = 5
 //                this.sslMode = "require"
         }
@@ -51,7 +53,7 @@ class DataSourceTest {
 //
 //                connectTimeout = 5
 //                socketTimeout = 5
-////                sslMode = "require"
+// //              sslMode = "require"
 //            }
 
 // implementation("com.zaxxer:HikariCP:3.2.0")
@@ -72,7 +74,7 @@ class DataSourceTest {
                 println("Database: Starting...")
                 postgresContainer.start()
                 dataSource.apply {
-                    serverName = postgresContainer.getContainerIpAddress()
+                    serverName = postgresContainer.containerIpAddress
                     port = postgresContainer.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
                 }
                 println("Database: Running")
@@ -111,8 +113,8 @@ class DataSourceTest {
     fun `expect on the fly password change succeed`() {
         // GIVEN
         val datasource = PGSimpleDataSource().apply {
-            setUrl(postgresContainer.getJdbcUrl())
-            user = postgresContainer.getUsername()
+            setUrl(postgresContainer.jdbcUrl)
+            user = postgresContainer.username
             password = "wrong"
         }
 
@@ -123,7 +125,7 @@ class DataSourceTest {
         // WHEN
         repeat(10) { index ->
             if (index % 2 == 0) {
-                datasource.password = postgresContainer.getPassword()
+                datasource.password = postgresContainer.password
                 println("Password: VALID")
             } else {
                 datasource.password = "wrong"
@@ -145,6 +147,8 @@ class DataSourceTest {
                     println("$index -> ${resultSet?.joinToString()}")
                 }
             }
+
+            // Then
             if (index % 2 == 0) {
                 expectThat(result).isSuccess()
                 println("SUCCESS")

@@ -21,6 +21,7 @@ plugins {
     id("com.adarshr.test-logger") version "2.0.0"
     id("com.dorongold.task-tree") version "1.5"
     id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    jacoco
 
     application
 
@@ -81,7 +82,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
 
-    testImplementation("io.strikt:strikt-core:0.24.0")
+    testImplementation("io.strikt:strikt-core:0.26.0")
     testImplementation("io.mockk:mockk:1.10.0")
 
     val testContainersVersion = "1.14.0"
@@ -90,16 +91,22 @@ dependencies {
 }
 
 // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
-project.configurations.implementation.get().isCanBeResolved = true
-project.configurations.runtimeOnly.get().isCanBeResolved = true
+project.configurations {
+    implementation.get().isCanBeResolved = true
+    runtimeOnly.get().isCanBeResolved = true
+}
 // </WORKAROUND>
 
 tasks {
 
+    withType<JavaExec> {
+        standardInput = System.`in`
+    }
+
     withType<KotlinCompile> {
         kotlinOptions {
             // allWarningsAsErrors = true
-            jvmTarget = JavaVersion.VERSION_1_8.toString()
+            jvmTarget = "11"
             freeCompilerArgs = listOf(
                 "-module-name", project.name,
                 "-Xopt-in=kotlin.RequiresOptIn",
@@ -112,16 +119,28 @@ tasks {
         }
     }
 
-    test {
-        useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors().minus(1).coerceAtLeast(1)
-        testlogger {
-            theme = MOCHA_PARALLEL
-        }
-    }
-
     withType<Jar> {
         archiveBaseName.set(project.name)
+    }
+
+    withType<ShadowJar> {
+        archiveBaseName.set(project.name)
+        mergeServiceFiles()
+//        relocate("org.postgresql.util", "shadow.org.postgresql.util")
+        minimize {
+//            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
+        }
+        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
+        configurations = listOf(
+            project.configurations.implementation.get(),
+            project.configurations.runtimeOnly.get()
+        )
+        // </WORKAROUND>
+    }
+
+    test {
+        useJUnitPlatform()
+        maxParallelForks = Runtime.getRuntime().availableProcessors().div(2).coerceAtLeast(1)
     }
 
     val jarDependencies = register<Jar>("jarDependencies") {
@@ -140,28 +159,13 @@ tasks {
         with(jarDependencies.get())
     }
 
-    withType<ShadowJar> {
-        archiveBaseName.set(project.name)
-        mergeServiceFiles()
-//        relocate("org.postgresql.util", "shadow.org.postgresql.util")
-        minimize {
-//            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
-        }
-        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
-        configurations = listOf(
-            project.configurations.implementation.get(),
-            project.configurations.runtimeOnly.get()
-        )
-        // </WORKAROUND>
-    }
-
-    val shadowJarDependencies = register<ShadowJar>("shadowJarDependencies") {
+    register<ShadowJar>("shadowJarDependencies") {
         archiveClassifier.set("dependencies-shadow")
         configurations = listOf(project.configurations.runtimeClasspath.get())
         exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
     }
 
-    val shadowJarApp = register<ShadowJar>("shadowJarApp") {
+    register<ShadowJar>("shadowJarApp") {
         archiveClassifier.set("app-shadow")
         configurations = listOf(project.configurations.runtime.get())
         from(sourceSets.main.get().output)
@@ -171,18 +175,35 @@ tasks {
         archiveClassifier.set("all-shadow")
     }
 
-    application {
-        mainClassName = "me.qoomon.examples.MainKt"
+    register("version") {
+        println(project.version)
     }
 
-    withType<JavaExec> {
-        standardInput = System.`in`
+    register("versionSet") {
+        val propertyFile = project.file("gradle.properties")
+        val property = "version" to project.version
+        val propertyFileContent = propertyFile.readText()
+        val propertyFileContentNew = propertyFileContent.replace(
+            "^${Regex.escape(property.first)}=.*$".toRegex(RegexOption.MULTILINE),
+            "${property.first}=${property.second}"
+        )
+        if(propertyFileContentNew != propertyFileContent) {
+            propertyFile.writeText(propertyFileContentNew)
+            println("${property.first} set to '${property.second}' in ${propertyFile.relativeTo(projectDir)}")
+        }
     }
 }
 
+application {
+    mainClassName = "me.qoomon.examples.MainKt"
+}
+
+testlogger {
+    theme = MOCHA_PARALLEL
+}
 
 ktlint {
-    ignoreFailures.set(true)
+//    ignoreFailures.set(true)
     reporters {
         reporter(PLAIN)
         reporter(CHECKSTYLE)

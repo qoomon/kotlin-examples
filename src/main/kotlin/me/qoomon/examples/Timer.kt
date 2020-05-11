@@ -2,7 +2,6 @@ package me.qoomon.examples
 
 import kotlinx.coroutines.*
 import kotlin.time.Duration
-import kotlin.time.seconds
 
 fun schedule(
     period: Duration,

@@ -14,7 +14,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
 
-fun LocalDateTime.toDate(): Date = Date.from(this.atZone(ZoneId.systemDefault()).toInstant());
+fun LocalDateTime.toDate(): Date = Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
 fun Date.toLocalDate(): LocalDateTime = Instant.ofEpochMilli(this.time).atZone(ZoneId.systemDefault()).toLocalDateTime()
 
 class ScheduleTest {
@@ -37,7 +37,6 @@ class ScheduleTest {
 
         // Then
         expectThat(execute).isEqualTo(expected.execute)
-
     },
         cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
@@ -57,7 +56,6 @@ class ScheduleTest {
                 )
             )
         })
-
 
     @TestFactory
     fun `quartz CronExpression  2`() = parameterizedTest(test = {
@@ -77,7 +75,6 @@ class ScheduleTest {
 
         // Then
         expectThat(execute).isEqualTo(expected.execute)
-
     },
         cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
@@ -97,7 +94,6 @@ class ScheduleTest {
                 )
             )
         })
-
 
     @TestFactory
     fun `cron-utils CronExpression`() = parameterizedTest(test = {
@@ -119,7 +115,6 @@ class ScheduleTest {
 
         // Then
         expectThat(execute).isEqualTo(expected.execute)
-
     },
         cases = {
             data class Given(val cronString: String, val now: ZonedDateTime, val lastExecution: ZonedDateTime?)

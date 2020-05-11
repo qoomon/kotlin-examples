@@ -21,7 +21,6 @@ import strikt.api.expectThat
 import strikt.assertions.isNotNull
 import java.util.*
 
-
 class ExposedJsonColumnTypeTest {
 
     @Serializable
@@ -124,7 +123,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<Any>("scopes").contains("auth")
+                    UsersTable.role.json<Any>("permissions").contains("auth")
                 }.firstOrNull()
 
                 // Then
@@ -134,8 +133,6 @@ class ExposedJsonColumnTypeTest {
                 println(" permissions: ${user?.permissions?.joinToString(", ")}")
             }
         }
-
-
     }
 
     @Test
@@ -158,7 +155,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 exec("""SELECT users.* FROM users WHERE users."scopes" ?? 'auth'""") {
-                    val metaData = it.getMetaData()
+                    val metaData = it.metaData
                     val columnCount = metaData.columnCount
 
                     val header = (1..columnCount).map { metaData.getColumnLabel(it) }.joinToString()
@@ -171,8 +168,6 @@ class ExposedJsonColumnTypeTest {
                 }
             }
         }
-
-
     }
 
     companion object {
@@ -181,9 +176,9 @@ class ExposedJsonColumnTypeTest {
 
         val database by lazy {
             Database.connect(
-                url = postgresContainer.getJdbcUrl(),
+                url = postgresContainer.jdbcUrl,
                 driver = "org.postgresql.Driver",
-                user = postgresContainer.getUsername(), password = postgresContainer.getPassword()
+                user = postgresContainer.username, password = postgresContainer.password
             )
         }
 

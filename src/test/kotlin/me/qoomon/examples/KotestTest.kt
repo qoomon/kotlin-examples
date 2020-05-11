@@ -2,7 +2,7 @@ package me.qoomon.examples
 
 import io.kotest.core.spec.style.BehaviorSpec
 
-class Kotest : BehaviorSpec({
+class KotestTest : BehaviorSpec({
 
     Given("a broomstick") {
         When("I throw it away") {

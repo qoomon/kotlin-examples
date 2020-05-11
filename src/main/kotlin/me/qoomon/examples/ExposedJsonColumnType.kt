@@ -4,7 +4,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import me.qoomon.examples.JsonbColumnType.Companion.JSONB
-import me.qoomon.examples.JsonbColumnType.Companion.TEXT
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.Function
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
@@ -55,7 +54,6 @@ fun <T : Any> Table.jsonb(
     json: Json = Json(JsonConfiguration.Stable)
 ): Column<T> = jsonb(name, { json.stringify(serializer, it) }, { json.parse(serializer, it) })
 
-
 class JsonValue<T>(
     val expr: Expression<*>,
     override val columnType: ColumnType,
@@ -92,20 +90,17 @@ inline fun <reified T> Column<*>.json(vararg jsonPath: String): JsonValue<T> {
         Int::class -> IntegerColumnType()
         Float::class -> FloatColumnType()
         String::class -> TextColumnType()
-        Any::class -> JsonbColumnType({ error("Unexpected call") }, { error("Unexpected call") })
-
-        else -> throw IllegalArgumentException("Type ${T::class} not supported for json fields.")
+        else -> JsonbColumnType({ error("Unexpected call") }, { error("Unexpected call") })
     }
     return JsonValue(this, columnType, jsonPath.toList())
 }
 
-
 class JsonContainsOp(expr1: Expression<*>, expr2: Expression<*>) : ComparisonOp(expr1, expr2, "??")
 
 /** Checks if this expression contains some [t] value. */
-infix fun <T> JsonValue<T>.contains(t: T): JsonContainsOp =
+infix fun <T> JsonValue<Any>.contains(t: T): JsonContainsOp =
     JsonContainsOp(this, SqlExpressionBuilder.run { this@contains.wrap(t) })
 
 /** Checks if this expression contains some [other] expression. */
-infix fun <T, S1 : T?, S2 : T?> JsonValue<in S1>.contains(other: Expression<in S2>): JsonContainsOp =
+infix fun <T> JsonValue<Any>.contains(other: Expression<T>): JsonContainsOp =
     JsonContainsOp(this, other)

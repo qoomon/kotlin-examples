@@ -1,4 +1,4 @@
-import kotlin.math.PI
+package me.qoomon.examples
 
 open class GenericContainer<SELF : GenericContainer<SELF>> {
 
@@ -9,7 +9,7 @@ open class GenericContainer<SELF : GenericContainer<SELF>> {
     open fun start(): SELF = self()
 }
 
-class Container() : GenericContainer<Container>()
+class Container : GenericContainer<Container>()
 
 class SpecificContainer : GenericContainer<SpecificContainer>() {
 
@@ -17,12 +17,4 @@ class SpecificContainer : GenericContainer<SpecificContainer>() {
 }
 
 fun main() {
-    val container = SpecificContainer()
-        .name()
-        .configure()
-        .start()
-
-    Container()
-        .name()
-        .start()
 }

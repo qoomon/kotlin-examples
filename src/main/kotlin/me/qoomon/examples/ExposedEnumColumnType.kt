@@ -40,4 +40,3 @@ inline fun <reified T : Enum<T>> Table.enum(
         name = name,
         type = EnumColumnType(sqlType, stringify, parse)
     )
-

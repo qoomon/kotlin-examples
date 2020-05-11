@@ -26,4 +26,3 @@ class TimerTest {
         expectThat(count).isEqualTo(expectedCount)
     }
 }
-

@@ -50,7 +50,6 @@ class JUnitUtilsTest {
             }
         }
 
-        verify(exactly = 3) { testMethod(any(),any()) }
+        verify(exactly = 3) { testMethod(any(), any()) }
     }
-
 }
