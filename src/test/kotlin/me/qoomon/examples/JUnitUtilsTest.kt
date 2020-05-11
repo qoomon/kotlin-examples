@@ -2,11 +2,15 @@ package me.qoomon.examples
 
 import io.mockk.mockk
 import io.mockk.verify
+import org.hamcrest.core.IsEqual
+import org.junit.Assert.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestFactory
 import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import kotlin.math.pow
 
 class JUnitUtilsTest {
 
@@ -52,4 +56,37 @@ class JUnitUtilsTest {
 
         verify(exactly = 3) { testMethod(any(), any()) }
     }
+
+    @TestFactory
+    fun `parameterizedTest example`() = parameterizedTest(
+        test = {
+            // Given: see Case
+
+            // When
+            val result = givenBase.pow(givenExponent)
+
+            // Then
+            assertThat(result, IsEqual(expectedResult))
+        },
+        displayName = { "$givenBase^$givenExponent should be $expectedResult" },
+        cases = {
+            data class Case(
+                val givenBase: Double,
+                val givenExponent: Double,
+                val expectedResult: Double
+            )
+            listOf(
+                Case(
+                    givenBase = 2.0,
+                    givenExponent = 2.0,
+                    expectedResult = 4.0
+                ),
+                Case(
+                    givenBase = 3.0,
+                    givenExponent = 4.0,
+                    expectedResult = 81.0
+                )
+            )
+        }
+    )
 }
