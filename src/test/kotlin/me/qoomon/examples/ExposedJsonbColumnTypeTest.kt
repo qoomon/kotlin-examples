@@ -7,10 +7,7 @@ import org.jetbrains.exposed.dao.UUIDEntity
 import org.jetbrains.exposed.dao.UUIDEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.UUIDTable
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.StdOutSqlLogger
-import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.jdbc.iterate
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
@@ -21,7 +18,7 @@ import strikt.api.expectThat
 import strikt.assertions.isNotNull
 import java.util.*
 
-class ExposedJsonColumnTypeTest {
+class ExposedJsonbColumnTypeTest {
 
     @Serializable
     data class Permission(val name: String)
@@ -53,7 +50,7 @@ class ExposedJsonColumnTypeTest {
             UserEntity.new {
                 name = "John"
                 scopes = listOf("auth", "booking")
-                role = Role("Admin", listOf(Permission("DB"), Permission("FTP")))
+                role = Role("Admin", permissions = listOf(Permission("DB"), Permission("FTP")))
                 permissions = listOf(Permission("DB"), Permission("FTP"))
             }
         }
@@ -62,6 +59,45 @@ class ExposedJsonColumnTypeTest {
         transaction(database) {
 
             addLogger(StdOutSqlLogger)
+
+//            run {
+//
+//                val user = UserEntity.find {
+//                   where("${ UsersTable.role.nameInDatabaseCase()} #> '{\"permissions\"}' @> '[{\"name\":\"DB\"}]'::jsonb")
+//                }.firstOrNull()
+//
+//                // Then
+//                expectThat(user).isNotNull()
+//                println("User: $user")
+//                println(" role: ${user?.role}")
+//                println(" permissions: ${user?.permissions?.joinToString(", ")}")
+//            }
+
+            run {
+
+                val user = UserEntity.find {
+                    UsersTable.role.jsonObject("permissions").contains("[{\"name\":\"DB\"}]")
+                }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
+                println("User: $user")
+                println(" role: ${user?.role}")
+                println(" permissions: ${user?.permissions?.joinToString(", ")}")
+            }
+
+            run {
+                val user = UserEntity.find {
+                    UsersTable.scopes.jsonObject().exists("auth")
+                }.firstOrNull()
+
+                // Then
+                expectThat(user).isNotNull()
+                println("User: $user")
+                println(" role: ${user?.role}")
+                println(" permissions: ${user?.permissions?.joinToString(", ")}")
+            }
+
 
             run {
                 val user = UserEntity.findById(userEntity.id)
@@ -75,7 +111,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<String>("name").eq("Admin")
+                    UsersTable.role.jsonString("name").eq("Admin")
                 }.firstOrNull()
 
                 // Then
@@ -87,7 +123,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<String>("permissions", "0", "name").eq("DB")
+                    UsersTable.role.jsonString("permissions", "0", "name").eq("DB")
                 }.firstOrNull()
 
                 // Then
@@ -99,7 +135,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<Any>("permissions", "0").isNotNull()
+                    UsersTable.role.jsonObject("permissions", "0").isNotNull()
                 }.firstOrNull()
 
                 // Then
@@ -111,19 +147,7 @@ class ExposedJsonColumnTypeTest {
 
             run {
                 val user = UserEntity.find {
-                    UsersTable.role.json<String>().isNotNull()
-                }.firstOrNull()
-
-                // Then
-                expectThat(user).isNotNull()
-                println("User: $user")
-                println(" role: ${user?.role}")
-                println(" permissions: ${user?.permissions?.joinToString(", ")}")
-            }
-
-            run {
-                val user = UserEntity.find {
-                    UsersTable.role.json<Any>("permissions").contains("auth")
+                    UsersTable.role.jsonObject().isNotNull()
                 }.firstOrNull()
 
                 // Then

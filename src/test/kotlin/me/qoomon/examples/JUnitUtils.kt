@@ -34,7 +34,7 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
  *             Case(
  *                 givenBase = 3.0,
  *                 givenExponent = 4.0,
- *                 expectedResult = 81.0
+ *                     expectedResult = 81.0
  *             )
  *         )
  *     }

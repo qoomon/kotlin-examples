@@ -55,14 +55,16 @@ dependencies {
 
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:1.7.9")
-    runtimeOnly("org.slf4j:slf4j-api:1.7.30")
-    val log4jVersion = "2.13.1"
+    val log4jVersion = "2.13.2"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
-    runtimeOnly("com.amazonaws:aws-lambda-java-log4j2:1.0.0")
+    runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.0.0") {
+        exclude("org.apache.logging.log4j")
+    }
 
     // Database Dependencies
-    val exposedVersion = "0.23.1"
+    val exposedVersion = "0.24.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
