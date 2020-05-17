@@ -1,6 +1,6 @@
 package me.qoomon.examples
 
-import java.time.LocalDateTime
+import java.time.Instant
 import java.time.temporal.Temporal
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -9,24 +9,20 @@ import kotlin.time.toJavaDuration
 @Suppress("UNCHECKED_CAST")
 fun <T : Temporal> Duration.ago(from: T): T = (from - this.toJavaDuration()) as T
 
-fun Duration.ago() = ago(LocalDateTime.now())
+fun Duration.ago() = ago(Instant.now())
 
-fun <T> T.withinLast(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> {
-    val limit = duration.ago(from)
-    return (this > limit || this == limit) && this < from
-}
+fun <T> T.isWithinLast(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> =
+    duration.ago(from).let { this >= it && this < from }
 
-fun LocalDateTime.withinLast(duration: Duration) = withinLast(duration, LocalDateTime.now())
+fun Instant.isWithinLast(duration: Duration) = isWithinLast(duration, Instant.now())
 
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Temporal> Duration.ahead(from: T): T = (from + this.toJavaDuration()) as T
 
-fun Duration.ahead() = ahead(LocalDateTime.now())
+fun Duration.ahead() = ahead(Instant.now())
 
-fun <T> T.withinNext(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> {
-    val limit = duration.ahead(from)
-    return (this < limit || this == limit) && this > from
-}
+fun <T> T.isWithinNext(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> =
+    duration.ahead(from).let { this <= it && this > from }
 
-fun LocalDateTime.withinNext(duration: Duration) = withinNext(duration, LocalDateTime.now())
+fun Instant.isWithinNext(duration: Duration) = isWithinNext(duration, Instant.now())

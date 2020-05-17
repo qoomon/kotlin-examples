@@ -8,7 +8,7 @@ import strikt.assertions.length
 import java.math.BigInteger
 import java.security.MessageDigest
 
-internal class HashKtTest {
+internal class HashTest {
 
     @Test
     fun hash() {

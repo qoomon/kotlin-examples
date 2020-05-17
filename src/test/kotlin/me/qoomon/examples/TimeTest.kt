@@ -2,20 +2,18 @@ package me.qoomon.examples
 
 import org.junit.jupiter.api.Test
 
-import org.junit.jupiter.api.Assertions.*
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 import java.time.Instant
-import java.time.LocalDateTime
 import kotlin.time.days
 import kotlin.time.hours
 import kotlin.time.toJavaDuration
 
-internal class TimeKtTest {
+internal class TimeTest {
 
-    val now = LocalDateTime.now()
+    val now = Instant.now()
     val tomorrow = now + 1.days.toJavaDuration()
     val yesterday = now - 1.days.toJavaDuration()
 
@@ -35,7 +33,7 @@ internal class TimeKtTest {
     @Test
     fun withinLast() {
         // When
-        val result = yesterday.withinLast(3.days)
+        val result = yesterday.isWithinLast(3.days)
 
         // Then
         expectThat(result).isTrue()
@@ -44,7 +42,7 @@ internal class TimeKtTest {
     @Test
     fun `not withinLast`() {
         // When
-        val result = yesterday.withinLast(1.hours)
+        val result = yesterday.isWithinLast(1.hours)
 
         // Then
         expectThat(result).isFalse()
@@ -66,7 +64,7 @@ internal class TimeKtTest {
     @Test
     fun withinNext() {
         // When
-        val result = tomorrow.withinNext(3.days)
+        val result = tomorrow.isWithinNext(3.days)
 
         // Then
         expectThat(result).isTrue()
@@ -75,7 +73,7 @@ internal class TimeKtTest {
     @Test
     fun `not withinNext`() {
         // When
-        val result = tomorrow.withinNext(1.hours)
+        val result = tomorrow.isWithinNext(1.hours)
 
         // Then
         expectThat(result).isFalse()

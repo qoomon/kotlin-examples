@@ -7,7 +7,7 @@ import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
 
-internal class ConditionsKtTest {
+internal class ConditionsTest {
 
     @Test
     fun and() {
