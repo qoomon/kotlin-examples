@@ -3,6 +3,8 @@ package me.qoomon.examples
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 class MockkTest {
 
@@ -30,4 +32,34 @@ class MockkTest {
             }
         }
     }
+
+    @Test
+    fun `mock extension blocks`() {
+        // Given
+        val dummy = mockk<Dummy>()
+
+        dummy.apply {
+            every { transaction(any<Dummy.() -> Any>()) } answers {
+                val block = arg<Dummy.() -> Any>(0)
+                this@apply.block()
+            }
+            every { getData() } returns "mock data"
+        }
+
+        // When
+        val data = dummy.transaction {
+            getData()
+        }
+
+        // Then
+        expectThat(data).isEqualTo("mock data")
+    }
+
+    private class Dummy {
+        fun <T> transaction(block: Dummy.() -> T) = block()
+        fun getData() = "real data"
+    }
 }
+
+
+

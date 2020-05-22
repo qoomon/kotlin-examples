@@ -30,3 +30,22 @@ fun <T> retry(maxReties: Int, delay: Duration = Duration.ZERO, block: (Int) -> T
         }
     }
 }
+
+fun <T> tryAll(vararg attempts: () -> T): T = tryAll(attempts.toList())
+fun <T> tryAll(attempts: List<() -> T>): T {
+    val suppressedExceptions = mutableListOf<Throwable>()
+    for (attempt in attempts) {
+        try {
+            return attempt()
+        } catch (exception: Throwable) {
+            suppressedExceptions.add(exception)
+        }
+    }
+    suppressedExceptions.reverse()
+    val recentError = suppressedExceptions.removeAt(0)
+    throw recentError.apply {
+        suppressedExceptions.forEach {
+            addSuppressed(it)
+        }
+    }
+}

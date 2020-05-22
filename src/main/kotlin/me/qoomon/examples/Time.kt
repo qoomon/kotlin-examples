@@ -12,7 +12,7 @@ fun <T : Temporal> Duration.ago(from: T): T = (from - this.toJavaDuration()) as 
 fun Duration.ago() = ago(Instant.now())
 
 fun <T> T.isWithinLast(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> =
-    duration.ago(from).let { this >= it && this < from }
+    duration.ago(from).let { past -> past <= this && this < from }
 
 fun Instant.isWithinLast(duration: Duration) = isWithinLast(duration, Instant.now())
 
@@ -23,6 +23,6 @@ fun <T : Temporal> Duration.ahead(from: T): T = (from + this.toJavaDuration()) a
 fun Duration.ahead() = ahead(Instant.now())
 
 fun <T> T.isWithinNext(duration: Duration, from: T): Boolean where T : Temporal, T : Comparable<T> =
-    duration.ahead(from).let { this <= it && this > from }
+    duration.ahead(from).let { future -> from < this && this <= future }
 
 fun Instant.isWithinNext(duration: Duration) = isWithinNext(duration, Instant.now())

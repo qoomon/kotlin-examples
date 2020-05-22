@@ -11,6 +11,7 @@ buildscript {
 }
 
 apply(plugin = "koin")
+
 plugins {
     val kotlinVersion = "1.3.71"
     kotlin("jvm") version kotlinVersion
@@ -55,6 +56,7 @@ dependencies {
 
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:1.7.9")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.3.7")
     val log4jVersion = "2.13.2"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
@@ -145,6 +147,25 @@ tasks {
         maxParallelForks = Runtime.getRuntime().availableProcessors().div(2).coerceAtLeast(1)
     }
 
+    jacocoTestCoverageVerification {
+        dependsOn(test, jacocoTestReport)
+        violationRules {
+            rule {
+                limit {
+                    minimum = 0.5.toBigDecimal()
+                }
+            }
+        }
+    }
+
+    jacocoTestReport {
+        dependsOn(test)
+        reports {
+            xml.isEnabled = true
+            html.isEnabled = true
+        }
+    }
+
     val jarDependencies = register<Jar>("jarDependencies") {
         archiveClassifier.set("dependencies")
         from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
@@ -209,5 +230,22 @@ ktlint {
     reporters {
         reporter(PLAIN)
         reporter(CHECKSTYLE)
+    }
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+    val jacocoExcludes = listOf(
+        "de.otto.awsconfigurationmonitor.checkfunction.LambdaEntryPoint"
+    )
+
+    tasks.withType<JacocoReportBase>{
+        classDirectories.setFrom(sourceSets.main.get().output.asFileTree.matching {
+            excludes.forEach {
+                it.replace(".", "/")
+                    .replace("(?<!\\*\\*)$".toRegex(), ".class")
+                    .run(::exclude)
+            }
+        })
     }
 }
