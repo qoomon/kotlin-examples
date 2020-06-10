@@ -36,22 +36,4 @@ class StriktTest {
             isEqualTo("done")
         }
     }
-
-    @Test
-    fun `expectThat satisfy`() {
-        expectThat("foo") {
-            pass { assert(it == "foo") { "name is wrong" } }
-        }
-    }
-
-    @Test
-    fun `expect that satisfy`() {
-        expect {
-            that("foo") {
-                pass { assert(it == "foo") { "name is wrong" } }
-            }
-        }
-    }
-
-
 }
