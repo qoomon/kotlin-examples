@@ -18,14 +18,12 @@ class MockkTest {
 
     @Test
     fun `multiple answers`() {
-
         val factory = mockk<Factory>()
         every { factory.get() } returnsMany listOf("a", "b")
     }
 
     @Test
     fun `factory return mock`() {
-
         val factory = mockk<Factory> {
             every { getFoo() } returns mockk {
                 every { value } returns "foo"

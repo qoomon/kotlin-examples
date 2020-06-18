@@ -1,5 +1,6 @@
 package me.qoomon.examples
 
+import kotlin.reflect.KClass
 import kotlin.time.Duration
 
 /**
@@ -12,14 +13,21 @@ import kotlin.time.Duration
  * println("result: $result")
  * ```
  */
-fun <T> retry(maxReties: Int, delay: Duration = Duration.ZERO, block: (Int) -> T): T {
+fun <T> retry(
+    maxRetries: Int,
+    delay: Duration = Duration.ZERO,
+    catch: Set<KClass<out Throwable>> = setOf(Throwable::class),
+    block: (Int) -> T
+): T {
     val suppressedExceptions = mutableListOf<Throwable>()
-    for (i in 0 until maxReties) {
+    for (i in 0 until maxRetries) {
         try {
             return block(i)
         } catch (exception: Throwable) {
-            suppressedExceptions.add(exception)
-            Thread.sleep(delay.toLongMilliseconds())
+            if (catch.any { it.isInstance(exception) }) {
+                suppressedExceptions.add(exception)
+                Thread.sleep(delay.toLongMilliseconds())
+            } else throw exception
         }
     }
     suppressedExceptions.reverse()
@@ -31,14 +39,23 @@ fun <T> retry(maxReties: Int, delay: Duration = Duration.ZERO, block: (Int) -> T
     }
 }
 
-fun <T> tryAll(vararg attempts: () -> T): T = tryAll(attempts.toList())
-fun <T> tryAll(attempts: List<() -> T>): T {
+fun <T> tryAll(
+    vararg attempts: () -> T,
+    catch: Set<KClass<out Throwable>> = setOf(Throwable::class)
+): T = tryAll(attempts.toList(), catch)
+
+fun <T> tryAll(
+    attempts: List<() -> T>,
+    catch: Set<KClass<out Throwable>> = setOf(Throwable::class)
+): T {
     val suppressedExceptions = mutableListOf<Throwable>()
     for (attempt in attempts) {
         try {
             return attempt()
         } catch (exception: Throwable) {
-            suppressedExceptions.add(exception)
+            if (catch.any { it.isInstance(exception) }) {
+                suppressedExceptions.add(exception)
+            } else throw exception
         }
     }
     suppressedExceptions.reverse()

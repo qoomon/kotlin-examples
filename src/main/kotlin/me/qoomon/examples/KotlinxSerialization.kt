@@ -3,6 +3,12 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonInput
 
+/**
+ * handle json fields that can be a single object or an array of those objects.
+ * ```json
+ * { "foo": { "bar": 1 } } or { "foo": [ { "bar": 1 }, { "buzz": 2 } ] }
+ * ```
+ */
 @Serializer(forClass = List::class)
 class SingleElementListSerializer<T : Any>(private val dataSerializer: KSerializer<T>) : KSerializer<List<T>> {
 
