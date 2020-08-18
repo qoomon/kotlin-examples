@@ -24,7 +24,7 @@ class MockkTest {
 
     @Test
     fun `factory return mock`() {
-        val factory = mockk<Factory> {
+        mockk<Factory> {
             every { getFoo() } returns mockk {
                 every { value } returns "foo"
             }

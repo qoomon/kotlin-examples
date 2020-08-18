@@ -4,13 +4,14 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.GenericContainer
+import org.testcontainers.utility.DockerImageName
 import strikt.api.expectThat
 
 class TestContainersTest {
 
     companion object {
         val container by lazy {
-            GenericContainer<Nothing>("alpine").apply {
+            GenericContainer<Nothing>(DockerImageName.parse("alpine")).apply {
                 withCommand("nc 127.0.0.1 2323 -lk")
             }
         }

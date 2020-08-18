@@ -48,5 +48,5 @@ fun schedule(name: String, period: Duration, action: TimerTask.() -> Unit) = tim
     initialDelay = period.toLongMilliseconds(),
     period = period.toLongMilliseconds(),
     daemon = true,
-    action = action
+    action = action,
 )

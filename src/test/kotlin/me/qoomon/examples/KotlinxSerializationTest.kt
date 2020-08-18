@@ -1,9 +1,7 @@
 package me.qoomon.examples
 
-import SingleElementListSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -21,7 +19,7 @@ class KotlinxSerializationTest {
     @Nested
     inner class SingleElementListSerializerTest {
 
-        private val json = Json(JsonConfiguration.Stable)
+        private val json = Json {}
 
         @Test
         fun `deserialize returns array if field is a json array`() {
@@ -29,7 +27,7 @@ class KotlinxSerializationTest {
             val jsonString = """{"singleObjectList":["foo","bar"]}"""
 
             // When
-            val jsonObject = json.parse(DummyJsonObject.serializer(), jsonString)
+            val jsonObject = json.decodeFromString(DummyJsonObject.serializer(), jsonString)
 
             // Then
             expectThat(jsonObject) {
@@ -44,7 +42,7 @@ class KotlinxSerializationTest {
             val jsonString = """{"singleObjectList":"foo"}"""
 
             // When
-            val jsonObject = json.parse(DummyJsonObject.serializer(), jsonString)
+            val jsonObject = json.decodeFromString(DummyJsonObject.serializer(), jsonString)
 
             // Then
             expectThat(jsonObject) {
@@ -60,7 +58,7 @@ class KotlinxSerializationTest {
             )
 
             // When
-            val jsonString = json.stringify(DummyJsonObject.serializer(), jsonObject)
+            val jsonString = json.encodeToString(DummyJsonObject.serializer(), jsonObject)
 
             // Then
             expectThat(jsonString) isEqualTo """{"singleObjectList":["foo","bar"]}"""
@@ -74,7 +72,7 @@ class KotlinxSerializationTest {
             )
 
             // When
-            val jsonString = json.stringify(DummyJsonObject.serializer(), jsonObject)
+            val jsonString = json.encodeToString(DummyJsonObject.serializer(), jsonObject)
 
             // Then
             expectThat(jsonString) isEqualTo """{"singleObjectList":"foo"}"""

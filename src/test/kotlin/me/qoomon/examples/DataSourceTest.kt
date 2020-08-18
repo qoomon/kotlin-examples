@@ -10,13 +10,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.postgresql.ds.PGSimpleDataSource
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 import strikt.api.expectThat
 import strikt.assertions.isFailure
 import strikt.assertions.isSuccess
 
 class DataSourceTest {
 
-    val postgresContainer = PostgreSQLContainer<Nothing>("postgres:10.7")
+    val postgresContainer = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:10.7"))
 
     @BeforeEach
     fun beforeEach() {

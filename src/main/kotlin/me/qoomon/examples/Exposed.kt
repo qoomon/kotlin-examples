@@ -51,8 +51,6 @@ class ShopDAO(private val database: Database) {
         block()
     }
 
-    fun create(name: String): String = "created"
-
     fun getShopsByCreationDate(withinLast: Duration): Iterable<Shop> = Shop
         .find {
             Shops.createdDate.greater(withinLast.ago())

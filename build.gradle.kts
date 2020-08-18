@@ -13,16 +13,21 @@ buildscript {
 apply(plugin = "koin")
 
 plugins {
-    val kotlinVersion = "1.3.71"
+    val kotlinVersion = "1.4.0"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
-    id("com.github.johnrengelman.shadow") version "5.2.0"
-    id("com.adarshr.test-logger") version "2.0.0"
     id("com.dorongold.task-tree") version "1.5"
-    id("org.jlleitschuh.gradle.ktlint") version "9.2.1"
+    id("com.github.ben-manes.versions") version "0.29.0"
+    id("com.github.johnrengelman.shadow") version "6.0.0"
+
+    id("com.adarshr.test-logger") version "2.1.0"
+
+    id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
+
     jacoco
+    id("org.barfuin.gradle.jacocolog") version "1.2.2"
 
     application
 
@@ -32,12 +37,16 @@ plugins {
 repositories {
     jcenter()
     mavenCentral()
+    maven(url = "https://kotlin.bintray.com/kotlinx/")
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("test-junit"))
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5")
+    val kotlinxCoroutinesVersion = "1.3.9"
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.0")
 
     // Dependency Injection
     implementation("org.koin:koin-core:2.1.5") // ensure koin plugin version is equal
@@ -47,7 +56,6 @@ dependencies {
     implementation("com.cronutils:cron-utils:9.0.1")
 
     // JSON Dependencies
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.20.0")
     implementation("com.google.code.gson:gson:2.8.6")
     val jacksonVersion = "2.10.3"
     implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
@@ -56,7 +64,7 @@ dependencies {
 
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:1.7.9")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:1.3.7")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
     val log4jVersion = "2.13.2"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
@@ -76,20 +84,20 @@ dependencies {
     implementation("com.zaxxer:HikariCP:3.2.0")
 
     // Test Dependencies
-    val junitVersion = "5.6.1"
+    val junitVersion = "5.7.0-RC1"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
-    val kotestVersion = "4.0.3"
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
+    val kotestVersion = "4.2.0.RC2"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
 
-    testImplementation("io.strikt:strikt-core:0.26.0")
+    testImplementation("io.strikt:strikt-core:0.26.1")
     testImplementation("io.mockk:mockk:1.10.0")
 
-    val testContainersVersion = "1.14.0"
+    val testContainersVersion = "1.15.0-rc1"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
@@ -116,6 +124,7 @@ tasks {
                 "-Xopt-in=kotlin.RequiresOptIn",
                 "-Xopt-in=kotlin.contracts.ExperimentalContracts",
                 "-Xopt-in=kotlin.time.ExperimentalTime",
+                "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
                 "-Xinline-classes",
                 "-Xallow-kotlin-package",
                 "-Xallow-result-return-type"
@@ -210,7 +219,7 @@ tasks {
             "^${Regex.escape(property.first)}=.*$".toRegex(RegexOption.MULTILINE),
             "${property.first}=${property.second}"
         )
-        if(propertyFileContentNew != propertyFileContent) {
+        if (propertyFileContentNew != propertyFileContent) {
             propertyFile.writeText(propertyFileContentNew)
             println("${property.first} set to '${property.second}' in ${propertyFile.relativeTo(projectDir)}")
         }
@@ -223,6 +232,7 @@ application {
 
 testlogger {
     theme = MOCHA_PARALLEL
+    showSimpleNames = true
 }
 
 ktlint {
@@ -239,13 +249,31 @@ jacoco {
         "de.otto.awsconfigurationmonitor.checkfunction.LambdaEntryPoint"
     )
 
-    tasks.withType<JacocoReportBase>{
-        classDirectories.setFrom(sourceSets.main.get().output.asFileTree.matching {
-            excludes.forEach {
-                it.replace(".", "/")
-                    .replace("(?<!\\*\\*)$".toRegex(), ".class")
-                    .run(::exclude)
+    tasks.withType<JacocoReportBase> {
+        classDirectories.setFrom(
+            sourceSets.main.get().output.asFileTree.matching {
+                excludes.forEach {
+                    it.replace(".", "/")
+                        .replace("(?<!\\*\\*)$".toRegex(), ".class")
+                        .run { exclude(it) }
+                }
             }
-        })
+        )
     }
+}
+
+tasks.withType<JacocoReportBase> {
+    val excludes = listOf(
+        "org.exmaple.ClassName"
+    )
+
+    classDirectories.setFrom(
+        sourceSets.main.get().output.asFileTree.matching {
+            excludes.flatMap {
+                val path = it.replace(".", "/")
+                if (path.endsWith("**")) listOf(path)
+                else listOf("$path.class", "${path}\$*.class", "${path}Kt.class")
+            }.forEach(::exclude)
+        }
+    )
 }

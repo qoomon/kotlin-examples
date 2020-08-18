@@ -3,14 +3,14 @@ package me.qoomon.examples
 import strikt.api.Assertion
 
 /**
- * Evaluates a condition that may returns true or false.
+ * Asserts that the subject satisfies a given condition.
  *
  * @param description a description for the condition the assertion evaluates.
- * @param assert the assertion implementation that should result true or false.
+ * @param condition the condition that should result true if subject satisfies condition else false.
  * @return this assertion builder, in order to facilitate a fluent API.
  */
-fun <T> Assertion.Builder<T>.satisfies(description: String, assert: (T) -> Boolean): Assertion.Builder<T> {
-    return assert(description) { if (assert(it)) pass() else fail() }
+fun <T> Assertion.Builder<T>.satisfies(description: String, condition: (T) -> Boolean): Assertion.Builder<T> {
+    return assert(description) { if (condition(it)) pass() else fail() }
 }
 
 /**
