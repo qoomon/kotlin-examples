@@ -132,5 +132,6 @@ class ScheduleTest {
                     Expected(false)
                 )
             )
-        })
+        }
+    )
 }

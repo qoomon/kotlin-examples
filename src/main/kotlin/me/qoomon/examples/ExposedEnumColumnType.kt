@@ -14,12 +14,16 @@ class EnumColumnType<T : Enum<T>>(
     override fun sqlType() = sqlType
 
     override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
-        super.setParameter(stmt, index, value.let {
-            PGobject().apply {
-                this.type = sqlType()
-                this.value = value as String?
+        super.setParameter(
+            stmt,
+            index,
+            value.let {
+                PGobject().apply {
+                    this.type = sqlType()
+                    this.value = value as String?
+                }
             }
-        })
+        )
     }
 
     override fun valueFromDB(value: Any): Any {

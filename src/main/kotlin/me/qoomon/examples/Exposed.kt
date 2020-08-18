@@ -14,7 +14,6 @@ import java.util.*
 import kotlin.time.Duration
 import kotlin.time.days
 
-
 object Shops : UUIDTable("shops") {
     val createdDate = timestamp("created_date")
         .defaultExpression(CustomFunction("NOW", JavaInstantColumnType()))
@@ -29,7 +28,6 @@ class Shop(id: EntityID<UUID>) : UUIDEntity(id) {
 
     companion object : UUIDEntityClass<Shop>(Shops)
 }
-
 
 /**
  * Testable / Mockable DAO
@@ -59,7 +57,6 @@ class ShopDAO(private val database: Database) {
         .limit(10)
 }
 
-
 class ShopService(private val shopDAO: ShopDAO) {
 
     fun getNewShops(): List<Shop> {
@@ -68,5 +65,3 @@ class ShopService(private val shopDAO: ShopDAO) {
         }
     }
 }
-
-

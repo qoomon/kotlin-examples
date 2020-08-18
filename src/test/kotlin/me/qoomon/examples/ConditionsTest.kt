@@ -1,8 +1,6 @@
 package me.qoomon.examples
 
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import strikt.api.expectThat
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue

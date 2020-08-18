@@ -5,7 +5,6 @@ import java.time.temporal.Temporal
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
-
 @Suppress("UNCHECKED_CAST")
 fun <T : Temporal> Duration.ago(from: T): T = (from - this.toJavaDuration()) as T
 
@@ -20,7 +19,6 @@ fun <T> T.isWithinLast(
 
 fun Instant.isWithinLast(duration: Duration, includeFuture: Boolean = true) =
     isWithinLast(duration, Instant.now(), includeFuture)
-
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Temporal> Duration.ahead(from: T): T = (from + this.toJavaDuration()) as T

@@ -1,7 +1,6 @@
 package me.qoomon.examples
 
 import org.junit.jupiter.api.Test
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.*
 

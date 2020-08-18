@@ -41,7 +41,6 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("test-junit"))
     implementation(kotlin("reflect"))
     val kotlinxCoroutinesVersion = "1.3.9"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")

@@ -9,7 +9,6 @@ fun randomString(length: Int, charSet: List<Char> = DEFAULT_CHAR_SET, random: Ra
         .map { charSet.elementAt(it % charSet.size) }
         .joinToString("")
 
-
 fun main() {
     val random = Random.Default
     repeat(1000) {

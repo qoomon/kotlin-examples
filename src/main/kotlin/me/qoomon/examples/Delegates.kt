@@ -14,5 +14,3 @@ class MementoFactory<T>(private val method: T?.() -> T) {
         this.value = value
     }
 }
-
-

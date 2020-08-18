@@ -10,4 +10,3 @@ package me.qoomon.examples
  * ```
  */
 val pass = Unit
-

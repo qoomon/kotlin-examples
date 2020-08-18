@@ -2,11 +2,7 @@ package me.qoomon.examples
 
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.hasLength
 import strikt.assertions.isEqualTo
-import strikt.assertions.length
-import java.math.BigInteger
-import java.security.MessageDigest
 
 internal class HashTest {
 

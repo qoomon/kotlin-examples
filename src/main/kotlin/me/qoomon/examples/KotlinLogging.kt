@@ -15,6 +15,3 @@ class KotlinLoggingTestClass(private val log: KLogger = LOG) {
 fun main() {
     KotlinLoggingTestClass().doIt()
 }
-
-
-

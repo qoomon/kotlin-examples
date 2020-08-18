@@ -15,12 +15,16 @@ class JsonbColumnType<T : Any>(
     override fun sqlType() = JSONB
 
     override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
-        super.setParameter(stmt, index, value.let {
-            PGobject().apply {
-                this.type = sqlType()
-                this.value = value as String?
+        super.setParameter(
+            stmt,
+            index,
+            value.let {
+                PGobject().apply {
+                    this.type = sqlType()
+                    this.value = value as String?
+                }
             }
-        })
+        )
     }
 
     override fun valueFromDB(value: Any): Any {

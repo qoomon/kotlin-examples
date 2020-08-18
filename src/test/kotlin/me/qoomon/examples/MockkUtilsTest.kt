@@ -8,7 +8,6 @@ import strikt.assertions.isEqualTo
 import kotlin.time.Duration
 import kotlin.time.days
 
-
 internal class MockkUtilsTest {
 
     @Test
@@ -35,4 +34,3 @@ internal class MockkUtilsTest {
         fun functionWithDurationParameter(param: Duration) = param
     }
 }
-

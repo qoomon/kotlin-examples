@@ -3,7 +3,7 @@ package me.qoomon.examples
 open class Parent<T : Parent<T>> {
 
     @Suppress("UNCHECKED_CAST")
-    inline fun self(block: T.() -> Unit = {}): T = (this as T). apply { block() }
+    inline fun self(block: T.() -> Unit = {}): T = (this as T).apply { block() }
 
     fun hello(): T = self {
         println("world")

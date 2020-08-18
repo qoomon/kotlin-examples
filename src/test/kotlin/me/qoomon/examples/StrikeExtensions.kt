@@ -24,5 +24,3 @@ fun Assertion.Builder<String>.isAPalindrome(): Assertion.Builder<String> {
         )
     }
 }
-
-

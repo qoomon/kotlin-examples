@@ -58,6 +58,3 @@ class MockkTest {
         fun getData() = "real data"
     }
 }
-
-
-

@@ -24,7 +24,6 @@ inline fun <reified T : Any> MockKMatcherScope.anyValue(): T =
     if (T::class.isInline) anyInlineValue()
     else any()
 
-
 inline fun <reified T : Any> MockKMatcherScope.anyInlineValue(): T {
     val valueConstructor = T::class.primaryConstructor!!
     val valueType = valueConstructor.parameters[0].type.classifier as KClass<*>
