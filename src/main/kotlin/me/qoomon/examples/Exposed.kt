@@ -12,6 +12,7 @@ import org.jetbrains.exposed.sql.`java-time`.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.days
 
 object Shops : UUIDTable("shops") {
@@ -61,7 +62,7 @@ class ShopService(private val shopDAO: ShopDAO) {
 
     fun getNewShops(): List<Shop> {
         return shopDAO.transaction {
-            getShopsByCreationDate(7.days).toList()
+            getShopsByCreationDate(days(7)).toList()
         }
     }
 }

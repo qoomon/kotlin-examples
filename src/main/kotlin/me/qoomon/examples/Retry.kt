@@ -26,7 +26,7 @@ fun <T> retry(
         } catch (exception: Throwable) {
             if (catch.any { it.isInstance(exception) }) {
                 suppressedExceptions.add(exception)
-                Thread.sleep(delay.toLongMilliseconds())
+                Thread.sleep(delay.inWholeMilliseconds)
             } else throw exception
         }
     }

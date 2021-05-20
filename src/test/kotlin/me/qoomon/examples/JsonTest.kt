@@ -15,8 +15,6 @@ class JsonTest {
         @Test
         fun dynamicTests() {
             // Given
-            @Serializable
-            data class User(val name: String)
 
             val json = Json {}
             val userJsonInput = """{"name":"John"}""".trimIndent()
@@ -31,3 +29,6 @@ class JsonTest {
         }
     }
 }
+
+@Serializable
+internal data class User(val name: String)

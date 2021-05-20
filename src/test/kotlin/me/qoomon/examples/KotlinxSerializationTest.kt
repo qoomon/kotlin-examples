@@ -10,11 +10,7 @@ import strikt.assertions.isEqualTo
 
 class KotlinxSerializationTest {
 
-    @Serializable
-    data class DummyJsonObject(
-        @Serializable(with = SingleElementListSerializer::class)
-        val singleObjectList: List<String>
-    )
+
 
     @Nested
     inner class SingleElementListSerializerTest {
@@ -79,3 +75,9 @@ class KotlinxSerializationTest {
         }
     }
 }
+
+@Serializable
+internal data class DummyJsonObject(
+    @Serializable(with = SingleElementListSerializer::class)
+    val singleObjectList: List<String>
+)

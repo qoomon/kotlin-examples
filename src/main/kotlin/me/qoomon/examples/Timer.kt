@@ -6,6 +6,7 @@ import kotlin.time.Duration
 fun schedule(
     period: Duration,
     delay: Duration = Duration.ZERO,
+    @OptIn(DelicateCoroutinesApi::class)
     scope: CoroutineScope = GlobalScope,
     block: () -> Unit
 ) {

@@ -60,7 +60,7 @@ class DataSourceTest {
 // implementation("com.zaxxer:HikariCP:3.2.0")
 //        val pooledDatasource = HikariDataSource().apply {
 //            maximumPoolSize = 1
-//            connectionTimeout = 10.seconds.toLongMilliseconds()
+//            connectionTimeout = Duration.seconds(10).inWholeSeconds
 //            initializationFailTimeout = -1
 //            this.dataSource = dataSource
 //        }

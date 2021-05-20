@@ -1,61 +1,77 @@
 package me.qoomon.examples
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnType
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
-import org.postgresql.util.PGobject
+import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.junit.jupiter.api.*
+import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 
-class JsonbColumnType<T : Any>(
-    private val stringify: (T) -> String,
-    private val parse: (String) -> T
-) : ColumnType() {
-    override fun sqlType() = JSONB
+@Serializable
+data class UserData(
+    val rank: String,
+    val score: Int,
+)
 
-    override fun setParameter(stmt: PreparedStatementApi, index: Int, value: Any?) {
-        super.setParameter(
-            stmt,
-            index,
-            value.let {
-                PGobject().apply {
-                    this.type = sqlType()
-                    this.value = value as String?
-                }
-            })
-    }
+object UsersTable : Table() {
+    val id = varchar("id", length = 10)
+    val name = varchar("name", length = 50)
+    val data = jsonb("data", UserData.serializer())
 
-    override fun valueFromDB(value: Any): Any {
-        return if (value is PGobject) {
-            value.value.let {
-                if (it != null) parse(it)
-                else value
-            }
-        } else value
-    }
-
-    override fun valueToString(value: Any?): String = when (value) {
-        is Iterable<*> -> nonNullValueToString(value)
-        else -> super.valueToString(value)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    override fun notNullValueToDB(value: Any) = stringify(value as T)
-
-    companion object {
-        const val JSONB = "JSONB"
+    init {
+        index(false, Column<String>(this, "(data ->> 'rank')", VarCharColumnType()))
     }
 }
 
-fun <T : Any> Table.jsonb(name: String, stringify: (T) -> String, parse: (String) -> T): Column<T> =
-    registerColumn(name, JsonbColumnType(stringify, parse))
+class ExposedJsonbColumnTypeTest {
 
-/**
- * jsonb column with kotlinx.serialization as JSON serializer
- */
-fun <T : Any> Table.jsonb(
-    name: String,
-    serializer: KSerializer<T>,
-    json: Json = Json {}
-): Column<T> = jsonb(name, { json.encodeToString(serializer, it) }, { json.decodeFromString(serializer, it) })
+    @Test
+    fun test() {
+        transaction(database) {
+            addLogger(StdOutSqlLogger)
+            println("------------")
+            println(SchemaUtils.createStatements(UsersTable))
+        }
+    }
+
+//    @BeforeEach
+//    fun beforeEach() {
+//        transaction(database) {
+//            SchemaUtils.create(*tables.toTypedArray())
+//        }
+//    }
+//
+//    @AfterEach
+//    fun afterEach() {
+//        transaction(database) {
+//            SchemaUtils.drop(*tables.toTypedArray())
+//        }
+//    }
+//
+    companion object {
+        private val postgresContainer = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:11"))
+        val database by lazy {
+            Database.connect(
+                url = postgresContainer.jdbcUrl,
+                user = postgresContainer.username,
+                password = postgresContainer.password,
+            )
+        }
+
+        val tables = listOf(
+            UsersTable,
+        )
+
+        @BeforeAll
+        @JvmStatic
+        fun beforeAll() {
+            postgresContainer.start()
+        }
+
+        @AfterAll
+        @JvmStatic
+        fun afterAll() {
+            postgresContainer.stop()
+        }
+    }
+}

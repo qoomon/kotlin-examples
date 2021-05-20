@@ -1,33 +1,24 @@
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
-buildscript {
-    dependencies {
-        classpath("org.koin:koin-gradle-plugin:2.1.5")
-    }
-}
-
-apply(plugin = "koin")
-
 plugins {
-    val kotlinVersion = "1.4.0"
+    val kotlinVersion = "1.5.0"
     kotlin("jvm") version kotlinVersion
     kotlin("kapt") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
     id("com.dorongold.task-tree") version "1.5"
-    id("com.github.ben-manes.versions") version "0.29.0"
-    id("com.github.johnrengelman.shadow") version "6.0.0"
+    id("com.github.ben-manes.versions") version "0.38.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 
-    id("com.adarshr.test-logger") version "2.1.0"
+    id("com.adarshr.test-logger") version "3.0.0"
 
-    id("org.jlleitschuh.gradle.ktlint") version "9.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
 
     jacoco
-    id("org.barfuin.gradle.jacocolog") version "1.2.2"
+    id("org.barfuin.gradle.jacocolog") version "1.2.4"
 
     application
 
@@ -35,20 +26,22 @@ plugins {
 }
 
 repositories {
-    jcenter()
     mavenCentral()
-    maven(url = "https://kotlin.bintray.com/kotlinx/")
 }
 
 dependencies {
     implementation(kotlin("reflect"))
-    val kotlinxCoroutinesVersion = "1.3.9"
+    implementation("org.jetbrains.kotlin:kotlin-script-runtime:1.5.0")
+    val kotlinxCoroutinesVersion = "1.5.0"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:1.0.0-RC")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.1.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.0")
 
     // Dependency Injection
-    implementation("org.koin:koin-core:2.1.5") // ensure koin plugin version is equal
+    val koinVersion = "3.0.1"
+    implementation("io.insert-koin:koin-core:$koinVersion")
+    implementation("io.insert-koin:koin-core-ext:$koinVersion")
+    implementation("io.insert-koin:koin-ktor:$koinVersion")
 
     // Cron Dependencies
     implementation("org.quartz-scheduler:quartz:2.3.2")
@@ -71,9 +64,10 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.0.0") {
         exclude("org.apache.logging.log4j")
     }
+    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
 
     // Database Dependencies
-    val exposedVersion = "0.24.1"
+    val exposedVersion = "0.31.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
@@ -83,20 +77,26 @@ dependencies {
     implementation("com.zaxxer:HikariCP:3.2.0")
 
     // Test Dependencies
-    val junitVersion = "5.7.0-RC1"
+    val junitVersion = "5.8.0-M1"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
 
-    val kotestVersion = "4.2.0.RC2"
+    testImplementation("io.insert-koin:koin-test:$koinVersion")
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
+
+    val kotestVersion = "4.5.0"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
 
-    testImplementation("io.strikt:strikt-core:0.26.1")
-    testImplementation("io.mockk:mockk:1.10.0")
+    val striktVersion = "0.31.0"
+    testImplementation("io.strikt:strikt-core:$striktVersion")
+    testImplementation("io.strikt:strikt-jvm:$striktVersion")
+    testImplementation("io.strikt:strikt-core:$striktVersion")
+    testImplementation("io.mockk:mockk:1.11.0")
 
-    val testContainersVersion = "1.15.0-rc1"
+    val testContainersVersion = "1.15.3"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
@@ -124,31 +124,52 @@ tasks {
                 "-Xopt-in=kotlin.contracts.ExperimentalContracts",
                 "-Xopt-in=kotlin.time.ExperimentalTime",
                 "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
-                "-Xinline-classes",
                 "-Xallow-kotlin-package",
                 "-Xallow-result-return-type"
             )
         }
     }
 
-    withType<Jar> {
-        archiveBaseName.set(project.name)
-    }
-
-    withType<ShadowJar> {
-        archiveBaseName.set(project.name)
-        mergeServiceFiles()
-//        relocate("org.postgresql.util", "shadow.org.postgresql.util")
-        minimize {
-//            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
-        }
-        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
-        configurations = listOf(
-            project.configurations.implementation.get(),
-            project.configurations.runtimeOnly.get()
-        )
-        // </WORKAROUND>
-    }
+//    withType<Jar> {
+//        archiveBaseName.set(project.name)
+//    }
+//
+//    withType<ShadowJar> {
+//        archiveBaseName.set(project.name)
+//        mergeServiceFiles()
+// //        relocate("org.postgresql.util", "shadow.org.postgresql.util")
+//        minimize {
+// //            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
+//        }
+//        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
+//        configurations = listOf(
+//            project.configurations.implementation.get(),
+//            project.configurations.runtimeOnly.get()
+//        )
+//        // </WORKAROUND>
+//    }
+//
+//
+//    val jarDependencies = register<Jar>("jarDependencies") {
+//        archiveClassifier.set("dependencies")
+//        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+//        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
+//    }
+//
+//    val jarApp = register<Jar>("jarApp") {
+//        archiveClassifier.set("app")
+//        from(sourceSets.main.get().output)
+//    }
+//
+//    jar {
+//        archiveClassifier.set("all")
+//        with(jarDependencies.get())
+//    }
+//
+//    shadowJar {
+//        archiveClassifier.set("shadow")
+//        minimize()
+//    }
 
     test {
         useJUnitPlatform()
@@ -174,38 +195,6 @@ tasks {
         }
     }
 
-    val jarDependencies = register<Jar>("jarDependencies") {
-        archiveClassifier.set("dependencies")
-        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
-    }
-
-    val jarApp = register<Jar>("jarApp") {
-        archiveClassifier.set("app")
-        from(sourceSets.main.get().output)
-    }
-
-    jar {
-        archiveClassifier.set("all")
-        with(jarDependencies.get())
-    }
-
-    register<ShadowJar>("shadowJarDependencies") {
-        archiveClassifier.set("dependencies-shadow")
-        configurations = listOf(project.configurations.runtimeClasspath.get())
-        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
-    }
-
-    register<ShadowJar>("shadowJarApp") {
-        archiveClassifier.set("app-shadow")
-        configurations = listOf(project.configurations.runtime.get())
-        from(sourceSets.main.get().output)
-    }
-
-    shadowJar {
-        archiveClassifier.set("all-shadow")
-    }
-
     register("version") {
         println(project.version)
     }
@@ -226,7 +215,7 @@ tasks {
 }
 
 application {
-    mainClassName = "me.qoomon.examples.MainKt"
+    mainClass.set("me.qoomon.examples.MainKt")
 }
 
 testlogger {
@@ -272,7 +261,7 @@ tasks.withType<JacocoReportBase> {
                 val path = it.replace(".", "/")
                 if (path.endsWith("**")) listOf(path)
                 else listOf("$path.class", "${path}\$*.class", "${path}Kt.class")
-            }.forEach(::exclude)
+            }.forEach { exclude(it) }
         }
     )
 }

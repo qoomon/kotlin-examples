@@ -45,8 +45,8 @@ class Singleton<out T>(initializer: () -> T) : Lazy<T> by lazy(initializer)
 
 fun schedule(name: String, period: Duration, action: TimerTask.() -> Unit) = timer(
     name = name,
-    initialDelay = period.toLongMilliseconds(),
-    period = period.toLongMilliseconds(),
+    initialDelay = period.inWholeMilliseconds,
+    period = period.inWholeMilliseconds,
     daemon = true,
     action = action,
 )
