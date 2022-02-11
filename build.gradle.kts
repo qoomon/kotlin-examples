@@ -4,9 +4,8 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
-    val kotlinVersion = "1.5.0"
+    val kotlinVersion = "1.6.10"
     kotlin("jvm") version kotlinVersion
-    kotlin("kapt") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
     id("com.dorongold.task-tree") version "1.5"
@@ -38,10 +37,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.2.0")
 
     // Dependency Injection
-    val koinVersion = "3.0.1"
+    val koinVersion = "3.1.5"
+
     implementation("io.insert-koin:koin-core:$koinVersion")
-    implementation("io.insert-koin:koin-core-ext:$koinVersion")
+    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
+
 
     // Cron Dependencies
     implementation("org.quartz-scheduler:quartz:2.3.2")
@@ -77,7 +78,7 @@ dependencies {
     implementation("com.zaxxer:HikariCP:3.2.0")
 
     // Test Dependencies
-    val junitVersion = "5.8.0-M1"
+    val junitVersion = "5.8.2"
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
@@ -85,18 +86,18 @@ dependencies {
     testImplementation("io.insert-koin:koin-test:$koinVersion")
     testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 
-    val kotestVersion = "4.5.0"
+    val kotestVersion = "5.1.0"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
 
-    val striktVersion = "0.31.0"
+    val striktVersion = "0.34.1"
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
     testImplementation("io.strikt:strikt-core:$striktVersion")
-    testImplementation("io.mockk:mockk:1.11.0")
+    testImplementation("io.mockk:mockk:1.12.2")
 
-    val testContainersVersion = "1.15.3"
+    val testContainersVersion = "1.16.3"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
