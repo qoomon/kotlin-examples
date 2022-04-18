@@ -27,7 +27,7 @@ class EnumColumnType<T : Enum<T>>(
     }
 
     override fun valueFromDB(value: Any): Any {
-        return if (value is PGobject) parse(value.value) else value
+        return if (value is PGobject) parse(value.value!!) else value
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -7,13 +7,12 @@ import org.jetbrains.exposed.dao.id.UUIDTable
 import org.jetbrains.exposed.sql.CustomFunction
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder.DESC
-import org.jetbrains.exposed.sql.`java-time`.JavaInstantColumnType
-import org.jetbrains.exposed.sql.`java-time`.timestamp
+import org.jetbrains.exposed.sql.javatime.JavaInstantColumnType
+import org.jetbrains.exposed.sql.javatime.timestamp
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
-import kotlin.time.days
 
 object Shops : UUIDTable("shops") {
     val createdDate = timestamp("created_date")
@@ -62,7 +61,7 @@ class ShopService(private val shopDAO: ShopDAO) {
 
     fun getNewShops(): List<Shop> {
         return shopDAO.transaction {
-            getShopsByCreationDate(days(7)).toList()
+            getShopsByCreationDate(7.days).toList()
         }
     }
 }
