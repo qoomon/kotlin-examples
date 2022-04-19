@@ -102,7 +102,7 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
-// <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
+// <WORKAROUND for="https://github.com/johnrengelman/shadow/issues/448">
 project.configurations {
     implementation.get().isCanBeResolved = true
     runtimeOnly.get().isCanBeResolved = true
@@ -191,8 +191,8 @@ tasks {
     jacocoTestReport {
         dependsOn(test)
         reports {
-            xml.isEnabled = true
-            html.isEnabled = true
+            xml.required.set(true)
+            html.required.set(true)
         }
     }
 
