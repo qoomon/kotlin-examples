@@ -1,36 +1,33 @@
 package me.qoomon.examples
 
-import java.time.Instant
-import java.time.temporal.Temporal
+import kotlinx.datetime.Clock.System.now
+import kotlinx.datetime.Instant
 import kotlin.time.Duration
-import kotlin.time.toJavaDuration
 
-@Suppress("UNCHECKED_CAST")
-fun <T : Temporal> Duration.ago(from: T): T = (from - this.toJavaDuration()) as T
+fun Duration.ago(from: Instant): Instant = from - this
 
-fun Duration.ago() = ago(Instant.now())
+fun Duration.ago() = ago(now())
 
-fun <T> T.isWithinLast(
+fun Instant.isWithinLast(
     duration: Duration,
-    from: T,
+    from: Instant,
     includeFuture: Boolean = true
-): Boolean where T : Temporal, T : Comparable<T> =
-    duration.ago(from).let { past -> past <= this && (includeFuture || this < from) }
+): Boolean = duration.ago(from)
+    .let { past -> past <= this && (includeFuture || this < from) }
 
 fun Instant.isWithinLast(duration: Duration, includeFuture: Boolean = true) =
-    isWithinLast(duration, Instant.now(), includeFuture)
+    isWithinLast(duration, now(), includeFuture)
 
-@Suppress("UNCHECKED_CAST")
-fun <T : Temporal> Duration.ahead(from: T): T = (from + this.toJavaDuration()) as T
+fun Duration.ahead(from: Instant) = from + this
 
-fun Duration.ahead() = ahead(Instant.now())
+fun Duration.ahead() = ahead(now())
 
-fun <T> T.isWithinNext(
+fun Instant.isWithinNext(
     duration: Duration,
-    from: T,
+    from: Instant,
     includePast: Boolean = true
-): Boolean where T : Temporal, T : Comparable<T> =
-    duration.ahead(from).let { future -> (includePast || from < this) && this <= future }
+): Boolean = duration.ahead(from)
+    .let { future -> (includePast || from < this) && this <= future }
 
 fun Instant.isWithinNext(duration: Duration, includePast: Boolean = true) =
-    isWithinNext(duration, Instant.now(), includePast)
+    isWithinNext(duration, now(), includePast)

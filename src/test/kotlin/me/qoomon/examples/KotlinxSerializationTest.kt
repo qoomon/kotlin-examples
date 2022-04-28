@@ -10,8 +10,6 @@ import strikt.assertions.isEqualTo
 
 class KotlinxSerializationTest {
 
-
-
     @Nested
     inner class SingleElementListSerializerTest {
 

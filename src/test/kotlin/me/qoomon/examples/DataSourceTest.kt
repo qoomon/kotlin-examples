@@ -17,7 +17,7 @@ import strikt.assertions.isSuccess
 
 class DataSourceTest {
 
-    val postgresContainer = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:10.7"))
+    val postgresContainer = PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
 
     @BeforeEach
     fun beforeEach() {
@@ -35,7 +35,7 @@ class DataSourceTest {
 
 // implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.4")
         val dataSource = PGDataSource().apply {
-            serverName = postgresContainer.containerIpAddress
+            serverName = postgresContainer.host
             port = postgresContainer.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
             databaseName = postgresContainer.databaseName
             user = postgresContainer.username
@@ -75,7 +75,7 @@ class DataSourceTest {
                 println("Database: Starting...")
                 postgresContainer.start()
                 dataSource.apply {
-                    serverName = postgresContainer.containerIpAddress
+                    serverName = postgresContainer.host
                     port = postgresContainer.getMappedPort(PostgreSQLContainer.POSTGRESQL_PORT)
                 }
                 println("Database: Running")

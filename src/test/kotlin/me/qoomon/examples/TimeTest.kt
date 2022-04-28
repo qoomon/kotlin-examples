@@ -1,20 +1,19 @@
 package me.qoomon.examples
 
+import kotlinx.datetime.Clock
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isFalse
 import strikt.assertions.isTrue
-import java.time.Instant
-import kotlin.time.days
-import kotlin.time.hours
-import kotlin.time.toJavaDuration
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
 
 internal class TimeTest {
 
-    val now = Instant.now()
-    val tomorrow = now + 1.days.toJavaDuration()
-    val yesterday = now - 1.days.toJavaDuration()
+    val now = Clock.System.now()
+    val tomorrow = now + 1.days
+    val yesterday = now - 1.days
 
     @Test
     fun ago() {
@@ -25,7 +24,7 @@ internal class TimeTest {
         val result = duration.ago(from = now)
 
         // Then
-        val expectedResult = now - duration.toJavaDuration()
+        val expectedResult = now - duration
         expectThat(result) isEqualTo expectedResult
     }
 
@@ -56,7 +55,7 @@ internal class TimeTest {
         val result = duration.ahead(from = now)
 
         // Then
-        val expectedResult = now + duration.toJavaDuration()
+        val expectedResult = now + duration
         expectThat(result) isEqualTo expectedResult
     }
 

@@ -4,14 +4,14 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
+    application
+
     val kotlinVersion = "1.6.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
     id("com.dorongold.task-tree") version "2.1.0"
     id("com.github.ben-manes.versions") version "0.42.0"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
-
     id("com.adarshr.test-logger") version "3.2.0"
 
     id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
@@ -19,7 +19,7 @@ plugins {
     jacoco
     id("org.barfuin.gradle.jacocolog") version "2.0.0"
 
-    application
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 
     idea
 }
@@ -38,7 +38,8 @@ dependencies {
 
     // Dependency Injection
     val koinVersion = "3.2.0-beta-1"
-    implementation("io.insert-koin:koin-core:$koinVersion")
+
+    ("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
 
@@ -102,13 +103,6 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
-// <WORKAROUND for="https://github.com/johnrengelman/shadow/issues/448">
-project.configurations {
-    implementation.get().isCanBeResolved = true
-    runtimeOnly.get().isCanBeResolved = true
-}
-// </WORKAROUND>
-
 tasks {
 
     withType<JavaExec> {
@@ -118,37 +112,37 @@ tasks {
     withType<KotlinCompile> {
         kotlinOptions {
             // allWarningsAsErrors = true
-            jvmTarget = "11"
+            jvmTarget = JavaVersion.VERSION_17.toString()
             freeCompilerArgs = listOf(
                 "-module-name", project.name,
-                "-Xopt-in=kotlin.RequiresOptIn",
-                "-Xopt-in=kotlin.contracts.ExperimentalContracts",
-                "-Xopt-in=kotlin.time.ExperimentalTime",
-                "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
+                "-opt-in=kotlin.RequiresOptIn",
+                "-opt-in=kotlin.contracts.ExperimentalContracts",
+                "-opt-in=kotlin.time.ExperimentalTime",
+                "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
                 "-Xallow-kotlin-package",
                 "-Xallow-result-return-type"
             )
         }
     }
 
-//    withType<Jar> {
-//        archiveBaseName.set(project.name)
-//    }
-//
-//    withType<ShadowJar> {
-//        archiveBaseName.set(project.name)
-//        mergeServiceFiles()
-// //        relocate("org.postgresql.util", "shadow.org.postgresql.util")
-//        minimize {
-// //            exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
-//        }
-//        // <WORKARAOUND for="https://github.com/johnrengelman/shadow/issues/448">
-//        configurations = listOf(
-//            project.configurations.implementation.get(),
-//            project.configurations.runtimeOnly.get()
-//        )
-//        // </WORKAROUND>
-//    }
+    jar {
+        archiveBaseName.set(project.name)
+    }
+
+    shadowJar {
+        archiveBaseName.set(project.name)
+        mergeServiceFiles()
+        // relocate("org.postgresql.util", "shadow.org.postgresql.util")
+        minimize {
+            // exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
+        }
+        // <WORKAROUND for="https://github.com/johnrengelman/shadow/issues/448">
+        configurations = listOf(
+            project.configurations.implementation.get(),
+            project.configurations.runtimeOnly.get()
+        ).onEach { it.isCanBeResolved = true }
+        // </WORKAROUND>
+    }
 //
 //
 //    val jarDependencies = register<Jar>("jarDependencies") {
@@ -233,7 +227,7 @@ ktlint {
 }
 
 jacoco {
-    toolVersion = "0.8.5"
+    toolVersion = "0.8.8"
     val jacocoExcludes = listOf(
         "de.otto.awsconfigurationmonitor.checkfunction.LambdaEntryPoint"
     )
@@ -241,7 +235,7 @@ jacoco {
     tasks.withType<JacocoReportBase> {
         classDirectories.setFrom(
             sourceSets.main.get().output.asFileTree.matching {
-                excludes.forEach {
+                jacocoExcludes.forEach {
                     it.replace(".", "/")
                         .replace("(?<!\\*\\*)$".toRegex(), ".class")
                         .run { exclude(it) }

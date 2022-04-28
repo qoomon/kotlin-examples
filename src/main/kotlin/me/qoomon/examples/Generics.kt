@@ -15,6 +15,8 @@ open class B<SELF : B<SELF>> : A<SELF>() {
 }
 
 fun main() {
-    val a1: A<*> = A().actionA()
-    val b2: B<*> = B().actionA().actionB()
+    val a: A<*> = A().actionA()
+    val b: B<*> = B().actionA().actionB()
+    println(a.toString())
+    println(b.toString())
 }

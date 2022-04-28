@@ -49,7 +49,7 @@ class ExposedJsonbColumnTypeTest {
 //    }
 //
     companion object {
-        private val postgresContainer = PostgreSQLContainer<Nothing>(DockerImageName.parse("postgres:11"))
+        private val postgresContainer = PostgreSQLContainer(DockerImageName.parse("postgres:latest"))
         val database by lazy {
             Database.connect(
                 url = postgresContainer.jdbcUrl,

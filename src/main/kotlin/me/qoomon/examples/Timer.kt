@@ -9,12 +9,11 @@ fun schedule(
     @OptIn(DelicateCoroutinesApi::class)
     scope: CoroutineScope = GlobalScope,
     block: () -> Unit
-) {
-    scope.launch {
-        delay(delay)
-        while (isActive) {
-            block()
-            delay(period)
-        }
+) = scope.launch {
+    delay(delay)
+    while (isActive) {
+        block()
+        delay(period)
     }
 }
+

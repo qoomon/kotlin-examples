@@ -11,7 +11,7 @@ class TestContainersTest {
 
     companion object {
         val container by lazy {
-            GenericContainer<Nothing>(DockerImageName.parse("alpine")).apply {
+            GenericContainer(DockerImageName.parse("alpine")).apply {
                 withCommand("nc 127.0.0.1 2323 -lk")
             }
         }

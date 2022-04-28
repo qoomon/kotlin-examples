@@ -8,5 +8,4 @@ object DummyObject {
 }
 
 fun main() {
-    DummyObject.moin()
 }

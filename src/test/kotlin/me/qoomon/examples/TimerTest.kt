@@ -1,5 +1,7 @@
 package me.qoomon.examples
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -10,19 +12,21 @@ class TimerTest {
     @Test
     fun isFailure() {
         // Given
-        val period = seconds(2)
-        val duration = seconds(10)
+        val period = 2.seconds
+        val duration = 4.seconds
 
         // When
-        var count = 0
+        var count = 0L
 
-        schedule(period) {
-            count++
+        runBlocking {
+            schedule(period) {
+                count++
+            }
+            delay(duration)
         }
-        Thread.sleep(duration.inWholeMilliseconds)
 
         // Then
-        val expectedCount = duration.inWholeSeconds.toInt() / period.inWholeSeconds.toInt()
+        val expectedCount = duration.inWholeSeconds / period.inWholeSeconds
         expectThat(count).isEqualTo(expectedCount)
     }
 }
