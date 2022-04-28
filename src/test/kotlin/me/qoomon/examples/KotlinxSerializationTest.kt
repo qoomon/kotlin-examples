@@ -31,7 +31,6 @@ class KotlinxSerializationTest {
 
         @Test
         fun `deserialize returns array if field is a json primitive`() {
-
             // Given
             val jsonString = """{"singleObjectList":"foo"}"""
 

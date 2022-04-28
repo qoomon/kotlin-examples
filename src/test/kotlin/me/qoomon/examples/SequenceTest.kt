@@ -36,8 +36,7 @@ class SequenceTest {
             for (index in 0 until givenPageCount) {
                 elementAt(index).and {
                     get { body }.isEqualTo("body-$index")
-                    val expectedNextToken = if (index + 1 < givenPageCount)
-                        "nextToken-${index + 1}" else null
+                    val expectedNextToken = if (index + 1 < givenPageCount) "nextToken-${index + 1}" else null
                     get { nextToken }.isEqualTo(expectedNextToken)
                 }
             }
@@ -72,8 +71,7 @@ class SequenceTest {
             for (index in 0 until givenPageCount) {
                 elementAt(index).and {
                     get { body }.isEqualTo("body-$index")
-                    val expectedNextToken = if (index + 1 < givenPageCount)
-                        "nextToken-${index + 1}" else null
+                    val expectedNextToken = if (index + 1 < givenPageCount) "nextToken-${index + 1}" else null
                     get { nextToken }.isEqualTo(expectedNextToken)
                 }
             }

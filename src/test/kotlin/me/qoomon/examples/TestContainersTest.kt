@@ -31,7 +31,6 @@ class TestContainersTest {
 
     @Test
     fun `expect valid container state`() {
-
         // GIVEN
 
         // WHEN

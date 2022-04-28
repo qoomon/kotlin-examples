@@ -20,24 +20,26 @@ fun Date.toLocalDate(): LocalDateTime = Instant.ofEpochMilli(this.time).atZone(Z
 class ScheduleTest {
 
     @TestFactory
-    fun `quartz CronExpression`() = parameterizedTest(test = {
+    fun `quartz CronExpression`() = parameterizedTest(
+        test = {
+            // Given
+            val cronExpression = CronExpression(given.cronString)
 
-        // Given
-        val cronExpression = CronExpression(given.cronString)
-
-        // When
-        val execute = when (given.lastExecution) {
-            null -> true
-            else -> when (val nextExecution =
-                cronExpression.getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()) {
-                null -> false
-                else -> given.now.isAfter(nextExecution)
+            // When
+            val execute = when (given.lastExecution) {
+                null -> true
+                else -> when (
+                    val nextExecution = cronExpression
+                        .getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()
+                ) {
+                    null -> false
+                    else -> given.now.isAfter(nextExecution)
+                }
             }
-        }
 
-        // Then
-        expectThat(execute).isEqualTo(expected.execute)
-    },
+            // Then
+            expectThat(execute).isEqualTo(expected.execute)
+        },
         cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
             data class Expected(val execute: Boolean)
@@ -55,27 +57,30 @@ class ScheduleTest {
                     Expected(false)
                 )
             )
-        })
+        }
+    )
 
     @TestFactory
-    fun `quartz CronExpression  2`() = parameterizedTest(test = {
+    fun `quartz CronExpression  2`() = parameterizedTest(
+        test = {
+            // Given
+            val cronExpression = CronExpression(given.cronString)
 
-        // Given
-        val cronExpression = CronExpression(given.cronString)
-
-        // When
-        val execute = when (given.lastExecution) {
-            null -> true
-            else -> when (val nextExecution =
-                cronExpression.getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()) {
-                null -> false
-                else -> given.now.isAfter(nextExecution)
+            // When
+            val execute = when (given.lastExecution) {
+                null -> true
+                else -> when (
+                    val nextExecution = cronExpression
+                        .getNextValidTimeAfter(given.lastExecution.toDate())?.toLocalDate()
+                ) {
+                    null -> false
+                    else -> given.now.isAfter(nextExecution)
+                }
             }
-        }
 
-        // Then
-        expectThat(execute).isEqualTo(expected.execute)
-    },
+            // Then
+            expectThat(execute).isEqualTo(expected.execute)
+        },
         cases = {
             data class Given(val cronString: String, val now: LocalDateTime, val lastExecution: LocalDateTime?)
             data class Expected(val execute: Boolean)
@@ -93,29 +98,32 @@ class ScheduleTest {
                     Expected(false)
                 )
             )
-        })
+        }
+    )
 
     @TestFactory
-    fun `cron-utils CronExpression`() = parameterizedTest(test = {
+    fun `cron-utils CronExpression`() = parameterizedTest(
+        test = {
+            // Given
+            val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
+            val cronExpression = cronParser.parse(given.cronString)!!
+            val cronExecutionTime = ExecutionTime.forCron(cronExpression)!!
 
-        // Given
-        val cronParser = CronParser(CronDefinitionBuilder.instanceDefinitionFor(CronType.QUARTZ))
-        val cronExpression = cronParser.parse(given.cronString)!!
-        val cronExecutionTime = ExecutionTime.forCron(cronExpression)!!
-
-        // When
-        val execute = when (given.lastExecution) {
-            null -> true
-            else -> when (val nextExecution =
-                cronExecutionTime.nextExecution(given.lastExecution).orElse(null) ?: null) {
-                null -> false
-                else -> given.now.isAfter(nextExecution)
+            // When
+            val execute = when (given.lastExecution) {
+                null -> true
+                else -> when (
+                    val nextExecution = cronExecutionTime
+                        .nextExecution(given.lastExecution).orElse(null) ?: null
+                ) {
+                    null -> false
+                    else -> given.now.isAfter(nextExecution)
+                }
             }
-        }
 
-        // Then
-        expectThat(execute).isEqualTo(expected.execute)
-    },
+            // Then
+            expectThat(execute).isEqualTo(expected.execute)
+        },
         cases = {
             data class Given(val cronString: String, val now: ZonedDateTime, val lastExecution: ZonedDateTime?)
             data class Expected(val execute: Boolean)

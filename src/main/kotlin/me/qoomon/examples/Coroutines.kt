@@ -16,7 +16,6 @@ fun main() {
     runBlocking(IO + MDCContext()) {
         (0 until 100).forEach {
             launch {
-
                 LOG.info("$it started")
                 delay(100)
                 if (Random.nextDouble() < 0.1) throw Exception("$it throws exception")

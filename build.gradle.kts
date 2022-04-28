@@ -114,7 +114,7 @@ tasks {
             // allWarningsAsErrors = true
             jvmTarget = JavaVersion.VERSION_17.toString()
             freeCompilerArgs = listOf(
-                "-module-name", project.name,
+                "-module-name=${project.name}",
                 "-opt-in=kotlin.RequiresOptIn",
                 "-opt-in=kotlin.contracts.ExperimentalContracts",
                 "-opt-in=kotlin.time.ExperimentalTime",
@@ -220,6 +220,8 @@ testlogger {
 
 ktlint {
 //    ignoreFailures.set(true)
+    version.set("0.45.2")
+    enableExperimentalRules.set(true)
     reporters {
         reporter(PLAIN)
         reporter(CHECKSTYLE)
