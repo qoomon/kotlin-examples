@@ -1,10 +1,11 @@
 package me.qoomon.examples
 
-object DummyObject {
-    fun moin() {
-       println("moin")
-    }
-}
+val sName = "tutorialspoint"[1]
+
+data class Dummy(val foo: String)
 
 fun main() {
+
+
 }
+

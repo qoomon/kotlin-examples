@@ -14,3 +14,11 @@ class MementoFactory<T>(private val method: T?.() -> T) {
         this.value = value
     }
 }
+
+private val foo: String by mementoFactory { "$this!" }
+
+fun main() {
+    println(foo)
+    println(foo)
+    println(foo)
+}

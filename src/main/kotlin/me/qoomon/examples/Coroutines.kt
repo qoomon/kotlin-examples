@@ -5,23 +5,25 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.slf4j.MDCContext
+import mu.KLogger
+import mu.KotlinLogging
 import org.slf4j.MDC
 import kotlin.random.Random
 
-private val LOG = logger {}
+private val log: KLogger = KotlinLogging.logger {}
 
 fun main() {
     MDC.put("ContextInfo", "Hello!")
-    LOG.info("START")
+    log.info("START")
     runBlocking(IO + MDCContext()) {
         (0 until 100).forEach {
             launch {
-                LOG.info("$it started")
+                log.info("$it started")
                 delay(100)
                 if (Random.nextDouble() < 0.1) throw Exception("$it throws exception")
-                LOG.info("$it finished")
+                log.info("$it finished")
             }
         }
     }
-    LOG.info("END")
+    log.info("END")
 }

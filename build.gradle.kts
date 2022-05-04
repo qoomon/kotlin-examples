@@ -39,7 +39,7 @@ dependencies {
     // Dependency Injection
     val koinVersion = "3.2.0-beta-1"
 
-    ("io.insert-koin:koin-core:$koinVersion")
+    implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
 
@@ -65,7 +65,6 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.1.0") {
         exclude("org.apache.logging.log4j")
     }
-    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
 
     // Database Dependencies
     val exposedVersion = "0.38.1"
