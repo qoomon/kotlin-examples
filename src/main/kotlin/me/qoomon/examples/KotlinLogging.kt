@@ -4,7 +4,7 @@ import mu.KLogger
 import mu.KotlinLogging
 import mu.withLoggingContext
 
-private val log: KLogger = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 class KotlinLoggingTestClass(private val log: KLogger = me.qoomon.examples.log) {
 
@@ -13,15 +13,10 @@ class KotlinLoggingTestClass(private val log: KLogger = me.qoomon.examples.log) 
     }
 }
 
-class LoggingFields {
-    val fields: MutableMap<String, String?> = mutableMapOf()
-    fun field(pair: Pair<String, String?>) = fields.put(pair.first, pair.second)
-}
-
-private fun KLogger.info(msg: () -> String, fields: LoggingFields.() -> Unit) {
+private fun KLogger.info(msg: () -> String, fields: (MutableMap<String, String?>) -> Unit) {
     if (isInfoEnabled) {
-        val context = LoggingFields().apply { fields() }
-        withLoggingContext(context.fields) {
+        val context = mutableMapOf<String, String?>().apply { fields(this) }
+        withLoggingContext(context) {
             return info(msg)
         }
     }
@@ -31,12 +26,12 @@ fun main() {
 
     log.info { "log.info" }
 
+    log.info({ "log.info with fields" }, {
+        it["accountId"] = "123456789"
+        it["basketId"] = "123456789"
+    })
+
     withLoggingContext("accountId" to "123456789") {
         log.info { "withLoggingContext > log.info" }
     }
-
-    log.info({ "log.info with fields" }, {
-        field("accountId" to "123456789")
-        field("basketId" to "123456789")
-    })
 }

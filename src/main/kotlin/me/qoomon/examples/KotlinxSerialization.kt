@@ -1,13 +1,17 @@
 package me.qoomon.examples
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonElement
@@ -21,7 +25,7 @@ import java.time.Instant
  */
 @Serializer(forClass = List::class)
 class SingleElementListSerializer<T : Any>(
-    private val dataSerializer: KSerializer<T>
+    private val dataSerializer: KSerializer<T>,
 ) : KSerializer<List<T>> {
     override val descriptor = buildClassSerialDescriptor(serialName = "SingleElementListSerializer")
     private val dataListSerializer = ListSerializer(dataSerializer)
@@ -56,4 +60,38 @@ class InstantSerializer : KSerializer<Instant> {
     override fun serialize(encoder: Encoder, value: Instant) {
         encoder.encodeString(value.toString())
     }
+}
+
+
+
+@JvmInline
+@Serializable
+value class ProjectName private constructor(val value: String) {
+
+    init {
+        // checkNotNull() -> IllegalArgumentException
+        // require -> IllegalStateException
+        require(value.length <= 32) { "length is greater than 32" }
+    }
+
+    companion object {
+        operator fun invoke(value: String): Result<ProjectName> {
+            return kotlin.runCatching { ProjectName(value) }
+        }
+    }
+}
+
+@Serializable
+data class Project(val name: ProjectName, val language: String)
+
+fun main() {
+    // Serializing objects
+    val data = Project(ProjectName("kotlinx.serialization").getOrThrow(), "Kotlin")
+    val string = Json.encodeToString(data)
+    println(string) // {"name":"kotlinx.serialization","language":"Kotlin"}
+    // Deserializing back into objects
+    val obj = Json.decodeFromString<Project>(string)
+    println(obj) // Project(name=kotlinx.serialization, language=Kotlin)
+    // invalid project name
+    Json.decodeFromString<Project>("{\"name\":\"kotlinx.serializationxxxxxxxxxxxxxxxx\",\"language\":\"Kotlin\"}")
 }

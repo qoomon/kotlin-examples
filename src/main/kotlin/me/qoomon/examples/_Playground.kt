@@ -6,6 +6,7 @@ data class Dummy(val foo: String)
 
 fun main() {
 
+    mutableMapOf<String, String>() + mutableMapOf() + mutableMapOf()
 
 }
 

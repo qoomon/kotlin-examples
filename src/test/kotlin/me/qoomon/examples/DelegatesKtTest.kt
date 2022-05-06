@@ -22,7 +22,7 @@ internal class DelegatesKtTest {
     @Test
     fun `cacheFactory delegation should return calculated value and remember last value`() {
         // given
-        val providerValue by mementoFactory<Int> {
+        val providerValue by mementoFactory<Int?>(null) {
             when {
                 this == null -> 0
                 this < 2 -> this + 1

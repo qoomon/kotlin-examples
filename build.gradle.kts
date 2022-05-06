@@ -1,4 +1,6 @@
+
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
+import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
@@ -93,12 +95,12 @@ dependencies {
     val striktVersion = "0.34.1"
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
-    testImplementation("io.strikt:strikt-core:$striktVersion")
 
     testImplementation("io.mockk:mockk:1.12.3")
 
     val testContainersVersion = "1.17.1"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 }
 
@@ -260,4 +262,15 @@ tasks.withType<JacocoReportBase> {
             }.forEach { exclude(it) }
         }
     )
+}
+
+tasks.processResources {
+    filesMatching("application.properties") {
+        // groovy template engine (${placholder})
+        // expand(project.properties)
+        // expand("version" to project.version)
+
+        // groovy template engine (@placholder@)
+        filter<ReplaceTokens>("tokens" to mapOf("version" to project.version))
+    }
 }
