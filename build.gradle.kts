@@ -24,6 +24,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 
     idea
+    java
 }
 
 repositories {
@@ -102,6 +103,8 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
+
+    testImplementation("com.tngtech.archunit:archunit-junit5:0.23.1")
 }
 
 tasks {
@@ -120,8 +123,6 @@ tasks {
                 "-opt-in=kotlin.contracts.ExperimentalContracts",
                 "-opt-in=kotlin.time.ExperimentalTime",
                 "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
-                "-Xallow-kotlin-package",
-                "-Xallow-result-return-type"
             )
         }
     }
