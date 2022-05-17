@@ -7,10 +7,10 @@ fun main() {
     println((listOf(1, 2, 3) == listOf(1, 2, 3)))
 }
 
-open class PackageInternalDummyA @PackageInternal internal constructor() {
+open class PackageInternalDummyA internal constructor() {
 
     @PackageInternal
-    internal val value = "A"
+    internal val valueXXX = "A"
 
     companion object {
         val FOO = "MOIN"
@@ -20,8 +20,8 @@ open class PackageInternalDummyA @PackageInternal internal constructor() {
 
 class PackageInternalDummyB @PackageInternal internal constructor() {
     @PackageInternal
-    internal var value = PackageInternalDummyA().value
-        get
+    var value = PackageInternalDummyA().valueXXX
+        private set
 
     init {
         PackageInternalDummyD()
@@ -32,3 +32,8 @@ class PackageInternalDummyB @PackageInternal internal constructor() {
     // @PackageInternal
     class Foo()
 }
+
+ internal open class A() {
+     public val foo = ""
+ }
+

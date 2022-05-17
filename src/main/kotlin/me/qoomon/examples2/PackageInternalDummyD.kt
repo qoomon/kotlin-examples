@@ -7,4 +7,8 @@ import me.qoomon.PackageInternalDummyA
 internal open class PackageInternalDummyD @PackageInternal internal constructor() : PackageInternalDummyA() {
     @PackageInternal
     internal val foo: String = "" // TODO
+
+    init {
+        PackageInternalDummyA().valueXXX
+    }
 }
