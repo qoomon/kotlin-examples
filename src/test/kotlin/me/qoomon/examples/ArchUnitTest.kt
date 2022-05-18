@@ -1,10 +1,10 @@
 package me.qoomon.examples
 
+import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget
 import com.tngtech.archunit.core.domain.JavaClass
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.core.domain.JavaField
 import com.tngtech.archunit.core.domain.JavaMember
-import com.tngtech.archunit.core.domain.JavaMethodCall
 import com.tngtech.archunit.junit.AnalyzeClasses
 import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.lang.ArchCondition
@@ -17,10 +17,9 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
+import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction
 import com.tngtech.archunit.library.DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
-import me.qoomon.PackageInternal
-import me.qoomon._Package
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Member
@@ -39,59 +38,73 @@ class ArchUnitTest {
     fun `ensure no classes depend on upper packages`(classes: JavaClasses) =
         NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES.check(classes)
 
-    @ArchTest // TODO still WIP
-    fun `ensure permitted access for internal package elements`(classes: JavaClasses) {
-        noClasses().should(accessPackageInternalElements()).check(classes)
-    }
+    // --- @PackageInternal --------------------------------------------------------------------------------------------
+    @ArchTest
+    fun `ensure internal package elements are also marked as internal`(classes: JavaClasses) =
+        ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL.check(classes)
 
     @ArchTest
-    fun `ensure internal package elements are internal`(classes: JavaClasses) =
-        ALL_ELEMENTS_THAT_ARE_ANNOTATED_WITH_PACKAGE_INTERNAL_SHOULD_BE_INTERNAL.check(classes)
+    fun `ensure no illegal access to internal package elements`(classes: JavaClasses) {
+        NO_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_ACCESSED_FROM_OUTSIDE_ITS_PACKAGE.check(classes)
+    }
 }
 
-val ALL_ELEMENTS_THAT_ARE_ANNOTATED_WITH_PACKAGE_INTERNAL_SHOULD_BE_INTERNAL: ArchRule = CompositeArchRule.of(
-    listOf(
-        classes().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
-        constructors().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
-        fields().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
-        methods().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
-    )
-).`as`("elements that are annotated with @${PackageInternal::class.java.simpleName} should be internal")
-    .allowEmptyShould(true)
+val ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL: ArchRule =
+    CompositeArchRule.of(
+        listOf(
+            classes().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
+            constructors().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
+            fields().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
+            methods().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
+        )
+    ).`as`("@${PackageInternal::class.java.simpleName} elements should also be marked as internal")
+        .allowEmptyShould(true)
 
-private fun accessPackageInternalElements(): ArchCondition<JavaClass> =
-    object : ArchCondition<JavaClass>("access package private elements") {
+val NO_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_ACCESSED_FROM_OUTSIDE_ITS_PACKAGE: ClassesShouldConjunction =
+    noClasses().should(accessPackageInternalElementsIllegally())
 
+private fun accessPackageInternalElementsIllegally(): ArchCondition<JavaClass> =
+    object : ArchCondition<JavaClass>("access package internal elements") {
         override fun check(javaClass: JavaClass, events: ConditionEvents) {
             javaClass.accessesFromSelf.forEach { access ->
+                val target = access.target
                 if (
-                    access.target.isAnnotatedWith(PackageInternal::class.java) ||
-                    access.targetOwner.classHierarchy.any { c -> c.isAnnotatedWith(PackageInternal::class.java) }
+                    target.isAnnotatedWith(PackageInternal::class.java) ||
+                    (
+                        target is MethodCallTarget &&
+                        target.backingField()?.isAnnotatedWith(PackageInternal::class.java) == true
+                    ) ||
+                    target.owner.classHierarchy.any { c -> c.isAnnotatedWith(PackageInternal::class.java) }
                 ) {
-                    val selfAccess = access.targetOwner == access.originOwner
-                    val packageInternalAccess = "${access.targetOwner.packageName}."
+                    val isSelfAccess = access.targetOwner == access.originOwner
+                    val isPackageInternalAccess = "${access.targetOwner.packageName}."
                         .startsWith("${access.originOwner.packageName}.")
-                    val conditionSatisfied = !selfAccess && !packageInternalAccess
-                    events.add(SimpleConditionEvent(access, conditionSatisfied, access.description))
-                } else {
-                    if (access is JavaMethodCall) {
-                        val getterMethodMatch = Regex("^get([A-Z][^$]*).*").matchEntire(access.target.name)
-                        if (getterMethodMatch != null) {
-                            val fieldName = getterMethodMatch.groups[1]!!.value.replaceFirstChar { it.lowercase() }
-                            val backedField: JavaField? = access.targetOwner.tryGetField(fieldName).orElse(null)
-                            if (backedField != null && backedField.isAnnotatedWith(PackageInternal::class.java)) {
-                                val selfAccess = access.targetOwner == access.originOwner
-                                val packageInternalAccess = "${access.targetOwner.packageName}."
-                                    .startsWith("${access.originOwner.packageName}.")
-                                val conditionSatisfied = !selfAccess && !packageInternalAccess
-                                events.add(SimpleConditionEvent(access, conditionSatisfied, access.description))
-                            }
-                        }
-                    }
+                    val isConditionSatisfied = !isSelfAccess && !isPackageInternalAccess
+                    events.add(SimpleConditionEvent(access, isConditionSatisfied, access.description))
                 }
             }
         }
     }
+
+private fun MethodCallTarget.backingField(): JavaField? {
+    if (owner.isKotlinClass()) {
+        val fieldMethodMatch = Regex("^(?<fieldAction>get|set)(?<fieldName>[A-Z][^$]*).*").matchEntire(name)
+        if (fieldMethodMatch != null) {
+            val fieldAction = fieldMethodMatch.groups["fieldAction"]!!.value
+            val fieldName = fieldMethodMatch.groups["fieldName"]!!.value.replaceFirstChar { it.lowercase() }
+            val field: JavaField? = owner.tryGetField(fieldName).orElse(null)
+            if (field != null) {
+                when (fieldAction) {
+                    "get" -> if (returnType == field.type) return field
+                    "set" -> if (parameterTypes.size == 1 && parameterTypes[0] == field.type) return field
+                }
+            }
+        }
+    }
+    return null
+}
+
+private fun JavaClass.isKotlinClass() = isMetaAnnotatedWith("kotlin.Metadata")
 
 private inline fun <reified T : Any> beInternal() =
     object : ArchCondition<T>("annotated with @PackageInternal should be internal") {

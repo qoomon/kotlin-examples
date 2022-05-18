@@ -1,11 +1,13 @@
 package me.qoomon.examples
 
+import io.mockk.confirmVerified
 import io.mockk.every
+import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-
+@MockKExtension.ConfirmVerification
 class MockkTest {
 
     data class Foo(val value: String)
@@ -51,6 +53,7 @@ class MockkTest {
 
         // Then
         expectThat(data).isEqualTo("mock data")
+        confirmVerified()
     }
 
     private class Dummy {

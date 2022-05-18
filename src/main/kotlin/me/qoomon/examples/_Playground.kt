@@ -1,16 +1,16 @@
-package me.qoomon
+package me.qoomon.examples
 
-import me.qoomon.examples2.PackageInternalDummyD
 
 fun main() {
 
     println((listOf(1, 2, 3) == listOf(1, 2, 3)))
+
 }
 
 open class PackageInternalDummyA internal constructor() {
 
     @PackageInternal
-    internal val valueXXX = "A"
+    internal val valueXXX: String? = "A"
 
     companion object {
         val FOO = "MOIN"
@@ -24,7 +24,6 @@ class PackageInternalDummyB @PackageInternal internal constructor() {
         private set
 
     init {
-        PackageInternalDummyD()
         value = "abs"
         Foo()
     }
@@ -32,8 +31,4 @@ class PackageInternalDummyB @PackageInternal internal constructor() {
     // @PackageInternal
     class Foo()
 }
-
- internal open class A() {
-     public val foo = ""
- }
 

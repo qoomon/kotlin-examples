@@ -97,7 +97,7 @@ dependencies {
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
 
-    testImplementation("io.mockk:mockk:1.12.3")
+    testImplementation("io.mockk:mockk:1.12.4")
 
     val testContainersVersion = "1.17.1"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
