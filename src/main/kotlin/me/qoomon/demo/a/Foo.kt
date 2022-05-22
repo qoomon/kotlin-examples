@@ -12,4 +12,6 @@ internal class Foo : Base() {
     @PackageInternal
     internal fun hello() {
     }
+
+
 }

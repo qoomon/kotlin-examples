@@ -1,5 +1,6 @@
 package me.qoomon.enhancements.archunit
 
+import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget
 import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget
 import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget
 import com.tngtech.archunit.core.domain.JavaClass
@@ -76,29 +77,29 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(): ArchC
                     val origin = access.origin
                     val target = access.target
                     val targetIsAnnotated = target.isAnnotatedWith(PackageInternal::class.java)
-                    val parentIsAnnotated = target.owner.allRawSuperclasses.any { superClass ->
+                    val parentIsAnnotated = target.owner.allRawSuperclasses.any { parentClass ->
                         when (target) {
-                            is MethodCallTarget -> {
-                                val superMethodIsPackageInternal = run {
-                                    val methodParameters = target.rawParameterTypes.map { it.reflect() }.toTypedArray()
-                                    superClass.tryGetMethod(target.name, *methodParameters).orElse(null)
-                                        ?.isAnnotatedWith(PackageInternal::class.java) == true
-                                }
-                                val superBackingFieldIsPackageInternal = run {
-                                    val backingField = target.backingField()
-                                    if (backingField != null) {
-                                        superClass.tryGetField(backingField.name).orElse(null)
-                                            ?.isAnnotatedWith(PackageInternal::class.java) == true
-                                    } else false
-                                }
-                                superMethodIsPackageInternal || superBackingFieldIsPackageInternal
+                            is ConstructorCallTarget -> {
+                                val parameters = target.parameterTypes.map { it.name }.toTypedArray()
+                                parentClass.tryGetConstructor(*parameters).orElse(null)
+                                    ?.isAnnotatedWith(PackageInternal::class.java) ?: false
                             }
                             is FieldAccessTarget -> {
-                                val superFieldIsPackageInternal = run {
-                                    superClass.tryGetField(target.name).orElse(null)
-                                        ?.isAnnotatedWith(PackageInternal::class.java) == true
+                                parentClass.tryGetField(target.name).orElse(null)
+                                    ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                            }
+                            is MethodCallTarget -> {
+                                run {
+                                    val parameters = target.parameterTypes.map { it.name }.toTypedArray()
+                                    parentClass.tryGetMethod(target.name, *parameters).orElse(null)
+                                        ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                } ||
+                                run {
+                                    target.backingField()?.let {
+                                        parentClass.tryGetField(it.name).orElse(null)
+                                            ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                    } ?: false
                                 }
-                                superFieldIsPackageInternal
                             }
                             else -> false
                         }
