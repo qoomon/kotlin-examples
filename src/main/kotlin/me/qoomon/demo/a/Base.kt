@@ -1,7 +1,7 @@
 package me.qoomon.demo.a
 
 import me.qoomon.enhancements.kotlin.PackageInternal
-// @PackageInternal
+@PackageInternal
 internal open class Base {
 
     @PackageInternal

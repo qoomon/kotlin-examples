@@ -26,19 +26,18 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.jvm.kotlinProperty
 
-// TODO check if super classes or interfaces are package internal
+val PACKAGE_INTERNAL_ANNOTATION = PackageInternal::class.java
+
 val ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL: ArchRule =
     CompositeArchRule.of(
         listOf(
-            classes().that().areAnnotatedWith(PackageInternal::class.java).should(beInternal()),
-            constructors().that().areAnnotatedWith(PackageInternal::class.java).should(beInternalMember()),
-            fields().that().areAnnotatedWith(PackageInternal::class.java).should(beInternalMember()),
-            methods().that().areAnnotatedWith(PackageInternal::class.java).should(beInternalMember()),
+            classes().that().areAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION).should(beInternal()),
+            constructors().that().areAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION).should(beInternalMember()),
+            fields().that().areAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION).should(beInternalMember()),
+            methods().that().areAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION).should(beInternalMember()),
         )
-    ).`as`("@${PackageInternal::class.java.simpleName} elements should also be marked as internal")
+    ).`as`("@${PACKAGE_INTERNAL_ANNOTATION.simpleName} elements should also be marked as internal")
         .allowEmptyShould(true)
-
-// val ALL_IMPLICIT_PACKAGE_INTERNAL_CLASSES_SHOULD_BE_ANNOTATED: ArchRule =
 
 val CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE_ITS_PACKAGE: ClassesShouldConjunction =
     classes().should(notAccessPackageInternalElementsFromOutsidePackageHierarchy())
@@ -48,12 +47,12 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(): ArchC
         override fun check(javaClass: JavaClass, events: ConditionEvents) {
             javaClass.directDependenciesFromSelf
                 .filter {
-                    it.targetClass.isAnnotatedWith(PackageInternal::class.java) ||
-                    it.targetClass.anyParentIsAnnotatedWith(PackageInternal::class.java)
+                    it.targetClass.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION) ||
+                    it.targetClass.anyParentIsAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION)
                 }
                 .forEach {
-                    val targetIsAnnotated = it.targetClass.isAnnotatedWith(PackageInternal::class.java)
-                    val parentIsAnnotated = it.targetClass.anyParentIsAnnotatedWith(PackageInternal::class.java)
+                    val targetIsAnnotated = it.targetClass.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION)
+                    val parentIsAnnotated = it.targetClass.anyParentIsAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION)
                     if (targetIsAnnotated || parentIsAnnotated) {
                         val isPackageInternalAccess = it.targetClass.isPartOf(it.originClass.`package`)
                         events.add(
@@ -71,33 +70,33 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(): ArchC
 
             javaClass.accessesFromSelf
                 .filterNot {
-                    it.target.owner.anyParentIsAnnotatedWith(PackageInternal::class.java)
+                    it.target.owner.anyParentIsAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION)
                 }
                 .forEach { access ->
                     val origin = access.origin
                     val target = access.target
-                    val targetIsAnnotated = target.isAnnotatedWith(PackageInternal::class.java)
+                    val targetIsAnnotated = target.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION)
                     val parentIsAnnotated = target.owner.allRawSuperclasses.any { parentClass ->
                         when (target) {
                             is ConstructorCallTarget -> {
                                 val parameters = target.parameterTypes.map { it.name }.toTypedArray()
                                 parentClass.tryGetConstructor(*parameters).orElse(null)
-                                    ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                    ?.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION) ?: false
                             }
                             is FieldAccessTarget -> {
                                 parentClass.tryGetField(target.name).orElse(null)
-                                    ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                    ?.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION) ?: false
                             }
                             is MethodCallTarget -> {
                                 run {
                                     val parameters = target.parameterTypes.map { it.name }.toTypedArray()
                                     parentClass.tryGetMethod(target.name, *parameters).orElse(null)
-                                        ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                        ?.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION) ?: false
                                 } ||
                                 run {
                                     target.backingField()?.let {
                                         parentClass.tryGetField(it.name).orElse(null)
-                                            ?.isAnnotatedWith(PackageInternal::class.java) ?: false
+                                            ?.isAnnotatedWith(PACKAGE_INTERNAL_ANNOTATION) ?: false
                                     } ?: false
                                 }
                             }
