@@ -9,5 +9,6 @@ class Bar {
         foo = Foo()
         foo?.moin()
         foo?.buzz
+        foo?.hello()
     }
 }

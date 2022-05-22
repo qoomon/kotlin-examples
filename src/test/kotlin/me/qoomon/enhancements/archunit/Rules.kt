@@ -43,59 +43,68 @@ val CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE_ITS_PACKAGE
     classes().should(notAccessPackageInternalElementsFromOutsidePackageHierarchy())
 
 private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(): ArchCondition<JavaClass> =
-    object : ArchCondition<JavaClass>("access package internal elements") {
+    object : ArchCondition<JavaClass>("not access package internal elements") {
         override fun check(javaClass: JavaClass, events: ConditionEvents) {
-            javaClass.directDependenciesFromSelf.forEach { dependency ->
-                if (
-                    dependency.targetClass.isAnnotatedWith(PackageInternal::class.java) ||
-                    dependency.targetClass.allRawSuperclasses.any { c -> c.isAnnotatedWith(PackageInternal::class.java) }
-                ) {
-                    val isPackageInternalAccess = dependency.targetClass.isPartOf(dependency.originClass.`package`)
-                    events.add(
-                        SimpleConditionEvent(
-                            dependency,
-                            isPackageInternalAccess,
-                            dependency.description
-                        )
-                    )
+            javaClass.directDependenciesFromSelf
+                .filter {
+                    it.targetClass.isAnnotatedWith(PackageInternal::class.java) ||
+                    it.targetClass.anyParentIsAnnotatedWith(PackageInternal::class.java)
                 }
-            }
+                .forEach {
+                    val targetIsAnnotated = it.targetClass.isAnnotatedWith(PackageInternal::class.java)
+                    val parentIsAnnotated = it.targetClass.anyParentIsAnnotatedWith(PackageInternal::class.java)
+                    if (targetIsAnnotated || parentIsAnnotated) {
+                        val isPackageInternalAccess = it.targetClass.isPartOf(it.originClass.`package`)
+                        events.add(
+                            SimpleConditionEvent(
+                                it,
+                                isPackageInternalAccess,
+                                it.description.let { description ->
+                                    if (targetIsAnnotated) description
+                                    else "$description - a parent class is package internal"
+                                }
+                            )
+                        )
+                    }
+                }
+
             javaClass.accessesFromSelf
-                .filter { it.target.owner.allRawSuperclasses.any { c -> c.isAnnotatedWith(PackageInternal::class.java) } }
+                .filterNot {
+                    it.target.owner.anyParentIsAnnotatedWith(PackageInternal::class.java)
+                }
                 .forEach { access ->
                     val origin = access.origin
                     val target = access.target
-                    val overridePackageInternalMember = when (target) {
-                        is MethodCallTarget -> {
-                            val superMethodIsPackageInternal =
-                                target.owner.allRawSuperclasses.any { superClass ->
-                                    val methodParameters =
-                                        target.rawParameterTypes.map { it.reflect() }.toTypedArray()
+                    val targetIsAnnotated = target.isAnnotatedWith(PackageInternal::class.java)
+                    val parentIsAnnotated = target.owner.allRawSuperclasses.any { superClass ->
+                        when (target) {
+                            is MethodCallTarget -> {
+                                val superMethodIsPackageInternal = run {
+                                    val methodParameters = target.rawParameterTypes.map { it.reflect() }.toTypedArray()
                                     superClass.tryGetMethod(target.name, *methodParameters).orElse(null)
                                         ?.isAnnotatedWith(PackageInternal::class.java) == true
                                 }
-                            val superBackingFieldIsPackageInternal =
-                                target.owner.allRawSuperclasses.any { superClass ->
+                                val superBackingFieldIsPackageInternal = run {
                                     val backingField = target.backingField()
                                     if (backingField != null) {
                                         superClass.tryGetField(backingField.name).orElse(null)
                                             ?.isAnnotatedWith(PackageInternal::class.java) == true
                                     } else false
                                 }
-                            superMethodIsPackageInternal || superBackingFieldIsPackageInternal
-                        }
-                        is FieldAccessTarget -> {
-                            val superFieldIsPackageInternal =
-                                target.owner.allRawSuperclasses.any { superClass ->
+                                superMethodIsPackageInternal || superBackingFieldIsPackageInternal
+                            }
+                            is FieldAccessTarget -> {
+                                val superFieldIsPackageInternal = run {
                                     superClass.tryGetField(target.name).orElse(null)
                                         ?.isAnnotatedWith(PackageInternal::class.java) == true
                                 }
-                            superFieldIsPackageInternal
+                                superFieldIsPackageInternal
+                            }
+                            else -> false
                         }
-                        else -> false
                     }
 
-                    if (overridePackageInternalMember) {
+                    if (targetIsAnnotated || parentIsAnnotated) {
                         val isSelfAccess = target.owner == origin.owner
                         val isPackageInternalAccess = target.owner.isPartOf(origin.owner.`package`)
                         val isConditionSatisfied = isSelfAccess || isPackageInternalAccess
@@ -103,12 +112,18 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(): ArchC
                             SimpleConditionEvent(
                                 access,
                                 isConditionSatisfied,
-                                access.description + " overridePackageInternalMember"
+                                access.description.let { description ->
+                                    if (targetIsAnnotated) description
+                                    else "$description - a parent definition is package internal"
+                                }
                             )
                         )
                     }
                 }
         }
+
+        private fun JavaClass.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
+            allRawSuperclasses.any { it.isAnnotatedWith(annotationType) }
     }
 
 private fun beInternal(): ArchCondition<JavaClass> =
