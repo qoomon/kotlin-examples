@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon
 
 internal class _Package private constructor()
 

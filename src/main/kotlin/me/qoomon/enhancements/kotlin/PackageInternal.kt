@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon.enhancements.kotlin
 
 /**
  * @see [me.qoomon.examples.ArchUnitTestKt.getALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL]
