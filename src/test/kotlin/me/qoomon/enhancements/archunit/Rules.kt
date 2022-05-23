@@ -18,7 +18,6 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.jvm.kotlinProperty
 
-
 fun haveValidPackageInternalAnnotations(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ArchCondition<JavaClass> =
@@ -132,6 +131,47 @@ fun notAccessPackageInternalElementsFromOutside(
             allRawSuperclasses.any { it.isAnnotatedWith(annotationType) }
     }
 
+fun beInternal(): ArchCondition<JavaClass> =
+    object : ArchCondition<JavaClass>("should be internal") {
+        override fun check(item: JavaClass, events: ConditionEvents) {
+            events.add(
+                SimpleConditionEvent(
+                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
+                )
+            )
+        }
+
+        private fun Class<*>.isInternal() = try {
+            this.kotlin.visibility == KVisibility.INTERNAL
+        } catch (ex: UnsupportedOperationException) {
+            false
+        }
+    }
+
+fun beInternalMember(): ArchCondition<JavaMember> =
+    object : ArchCondition<JavaMember>("should be internal") {
+        override fun check(item: JavaMember, events: ConditionEvents) {
+            events.add(
+                SimpleConditionEvent(
+                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
+                )
+            )
+        }
+
+        private fun Member.isInternal(): Boolean = try {
+            when (this) {
+                is Constructor<*> -> kotlinFunction?.visibility == KVisibility.INTERNAL
+                is Field -> kotlinProperty?.visibility == KVisibility.INTERNAL
+                is Method -> kotlinFunction?.visibility == KVisibility.INTERNAL
+                else -> throw NotImplementedError("isInternal is not implemented for ${this::class.java}")
+            }
+        } catch (ex: UnsupportedOperationException) {
+            false
+        }
+    }
+
+// ---------------------------------------------------------------------------------------------------------------------
+
 private fun JavaConstructor.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
     owner.allRawSuperclasses.any { parentClass ->
         val parameters = parameterTypes.map { it.name }.toTypedArray()
@@ -157,45 +197,6 @@ private fun JavaMethod.anyParentIsAnnotatedWith(annotationType: Class<out Annota
                 parentClass.tryGetField(field.name).orElse(null)
                     ?.isAnnotatedWith(annotationType) ?: false
             } ?: false
-        }
-    }
-
-private fun beInternal(): ArchCondition<JavaClass> =
-    object : ArchCondition<JavaClass>("should be internal") {
-        override fun check(item: JavaClass, events: ConditionEvents) {
-            events.add(
-                SimpleConditionEvent(
-                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
-                )
-            )
-        }
-
-        private fun Class<*>.isInternal() = try {
-            this.kotlin.visibility == KVisibility.INTERNAL
-        } catch (ex: UnsupportedOperationException) {
-            false
-        }
-    }
-
-private fun beInternalMember(): ArchCondition<JavaMember> =
-    object : ArchCondition<JavaMember>("should be internal") {
-        override fun check(item: JavaMember, events: ConditionEvents) {
-            events.add(
-                SimpleConditionEvent(
-                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
-                )
-            )
-        }
-
-        private fun Member.isInternal(): Boolean = try {
-            when (this) {
-                is Constructor<*> -> kotlinFunction?.visibility == KVisibility.INTERNAL
-                is Field -> kotlinProperty?.visibility == KVisibility.INTERNAL
-                is Method -> kotlinFunction?.visibility == KVisibility.INTERNAL
-                else -> throw NotImplementedError("isInternal is not implemented for ${this::class.java}")
-            }
-        } catch (ex: UnsupportedOperationException) {
-            false
         }
     }
 
