@@ -32,7 +32,6 @@ fun haveValidPackageInternalAnnotations(
                     )
                 )
             }
-
             javaClass.members.forEach {
                 if (it.isAnnotatedWith(packageInternalAnnotation.java)) {
                     events.add(
@@ -53,7 +52,7 @@ fun haveValidPackageInternalAnnotations(
         }
 
         private fun JavaMember.isInternal(): Boolean = try {
-            when (val member = this.reflect()) {
+            when (val member = reflect()) {
                 is Constructor<*> -> member.kotlinFunction?.visibility == KVisibility.INTERNAL
                 is Field -> member.kotlinProperty?.visibility == KVisibility.INTERNAL
                 is Method -> member.kotlinFunction?.visibility == KVisibility.INTERNAL
@@ -192,21 +191,21 @@ private fun JavaMethod.anyParentIsAnnotatedWith(annotationType: Class<out Annota
             parentClass.tryGetMethod(name, *parameters).orElse(null)
                 ?.isAnnotatedWith(annotationType) ?: false
         } ||
-        run {
-            backingField()?.let { field ->
-                parentClass.tryGetField(field.name).orElse(null)
-                    ?.isAnnotatedWith(annotationType) ?: false
-            } ?: false
-        }
+        backingField()?.anyParentIsAnnotatedWith(annotationType) ?: false
     }
 
 private fun JavaClass.isKotlinClass() = isMetaAnnotatedWith("kotlin.Metadata")
 
 private fun JavaMethod.backingField(): JavaField? {
     if (owner.isKotlinClass()) {
-        val fieldMethodMatch = Regex("^(?<fieldAction>get|set)(?<fieldName>[A-Z][^$]*).*").matchEntire(name)
+        val fieldMethodMatch = Regex("^(?<fieldAction>get|is|set)(?<fieldName>[A-Z][^$]*).*").matchEntire(name)
         if (fieldMethodMatch != null) {
-            val fieldAction = fieldMethodMatch.groups["fieldAction"]!!.value
+            val fieldAction = fieldMethodMatch.groups["fieldAction"]!!.value.let {
+                when (it) {
+                    "is" -> "get"
+                    else -> it
+                }
+            }
             val fieldName = fieldMethodMatch.groups["fieldName"]!!.value.replaceFirstChar { it.lowercase() }
             val field: JavaField? = owner.tryGetField(fieldName).orElse(null)
             if (field != null) {

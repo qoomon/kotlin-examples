@@ -4,7 +4,7 @@ import me.qoomon.enhancements.kotlin.PackageInternal
 
 internal class Foo : Base(), BaseInterface {
 
-    override val buzz: String = "testFoo"
+    override val isBuzz: Boolean = false
 
     override fun moin() {
     }

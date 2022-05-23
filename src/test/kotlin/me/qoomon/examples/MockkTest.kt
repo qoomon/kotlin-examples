@@ -1,12 +1,15 @@
 package me.qoomon.examples
 
+import io.mockk.Runs
 import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
+import io.mockk.just
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+
 @MockKExtension.ConfirmVerification
 class MockkTest {
 
@@ -56,8 +59,37 @@ class MockkTest {
         confirmVerified()
     }
 
+    @Test
+    fun `slot`() {
+        val slot = slot<String>()
+        val dummy = mockk<Dummy> {
+            every { setData(capture(slot)) } just Runs
+        }
+        dummy.setData("a")
+        dummy.setData("b")
+        dummy.setData("c")
+
+        println(slot.captured)
+        println(slot)
+    }
+
     private class Dummy {
         fun <T> transaction(block: Dummy.() -> T) = block()
         fun getData() = "real data"
+        fun setData(value: String) {}
     }
+}
+
+inline fun <reified T : Any> slot() = ListCapturingSlot<T>()
+
+class ListCapturingSlot<T : Any> private constructor(private val captureList: MutableList<T>) :
+    MutableList<T> by captureList {
+    constructor() : this(mutableListOf())
+
+    val captured: T
+        get() = captureList.last()
+
+    override fun toString(): String =
+        if (captureList.isEmpty()) "slot()"
+        else captureList.joinToString("\n") { "slot($it)" }
 }

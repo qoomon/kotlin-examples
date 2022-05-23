@@ -1,5 +1,7 @@
 package me.qoomon.enhancements.kotlin
 
+import kotlin.annotation.AnnotationRetention.BINARY
+
 /**
  * @see [me.qoomon.examples.ArchUnitTestKt.getALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL]
  * @see [me.qoomon.examples.ArchUnitTestKt.getNO_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_ACCESSED_FROM_OUTSIDE_ITS_PACKAGE]
@@ -13,4 +15,5 @@ package me.qoomon.enhancements.kotlin
     AnnotationTarget.ANNOTATION_CLASS,
     AnnotationTarget.CLASS,
 )
+@Retention(BINARY)
 annotation class PackageInternal
