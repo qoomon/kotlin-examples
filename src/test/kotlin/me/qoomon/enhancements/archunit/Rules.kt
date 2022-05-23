@@ -7,11 +7,8 @@ import com.tngtech.archunit.core.domain.JavaMember
 import com.tngtech.archunit.core.domain.JavaMethod
 import com.tngtech.archunit.core.domain.JavaPackage
 import com.tngtech.archunit.lang.ArchCondition
-import com.tngtech.archunit.lang.ArchRule
 import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
-import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Member
@@ -21,10 +18,8 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.jvm.kotlinProperty
 
-fun CLASSES_SHOULD_HAVE_VALID_INTERNAL_PACKAGE_ANNOTATIONS(packageInternalAnnotation: KClass<out Annotation>): ArchRule =
-    classes().should(haveValidPackageInternalAnnotations(packageInternalAnnotation))
 
-private fun haveValidPackageInternalAnnotations(
+fun haveValidPackageInternalAnnotations(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ArchCondition<JavaClass> =
     object : ArchCondition<JavaClass>("have valid package internal annotations") {
@@ -70,12 +65,7 @@ private fun haveValidPackageInternalAnnotations(
         }
     }
 
-fun CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE(
-    packageInternalAnnotation: KClass<out Annotation>,
-): ClassesShouldConjunction =
-    classes().should(notAccessPackageInternalElementsFromOutside(packageInternalAnnotation))
-
-private fun notAccessPackageInternalElementsFromOutside(
+fun notAccessPackageInternalElementsFromOutside(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ArchCondition<JavaClass> =
     object : ArchCondition<JavaClass>("not access package internal elements from outside") {
