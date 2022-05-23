@@ -1,21 +1,16 @@
 package me.qoomon.enhancements.archunit
 
-import com.tngtech.archunit.core.domain.AccessTarget.ConstructorCallTarget
-import com.tngtech.archunit.core.domain.AccessTarget.FieldAccessTarget
-import com.tngtech.archunit.core.domain.AccessTarget.MethodCallTarget
 import com.tngtech.archunit.core.domain.JavaClass
+import com.tngtech.archunit.core.domain.JavaConstructor
 import com.tngtech.archunit.core.domain.JavaField
 import com.tngtech.archunit.core.domain.JavaMember
+import com.tngtech.archunit.core.domain.JavaMethod
 import com.tngtech.archunit.core.domain.JavaPackage
 import com.tngtech.archunit.lang.ArchCondition
 import com.tngtech.archunit.lang.ArchRule
-import com.tngtech.archunit.lang.CompositeArchRule
 import com.tngtech.archunit.lang.ConditionEvents
 import com.tngtech.archunit.lang.SimpleConditionEvent
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields
-import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods
 import com.tngtech.archunit.lang.syntax.elements.ClassesShouldConjunction
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
@@ -26,26 +21,64 @@ import kotlin.reflect.KVisibility
 import kotlin.reflect.jvm.kotlinFunction
 import kotlin.reflect.jvm.kotlinProperty
 
-fun ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL(packageInternalAnnotation: KClass<out Annotation>): ArchRule =
-    CompositeArchRule.of(
-        listOf(
-            classes().that().areAnnotatedWith(packageInternalAnnotation.java).should(beInternal()),
-            constructors().that().areAnnotatedWith(packageInternalAnnotation.java).should(beInternalMember()),
-            fields().that().areAnnotatedWith(packageInternalAnnotation.java).should(beInternalMember()),
-            methods().that().areAnnotatedWith(packageInternalAnnotation.java).should(beInternalMember()),
-        )
-    ).`as`("@${packageInternalAnnotation.simpleName} elements should also be marked as internal")
-        .allowEmptyShould(true)
+fun CLASSES_SHOULD_HAVE_VALID_INTERNAL_PACKAGE_ANNOTATIONS(packageInternalAnnotation: KClass<out Annotation>): ArchRule =
+    classes().should(haveValidPackageInternalAnnotations(packageInternalAnnotation))
+
+private fun haveValidPackageInternalAnnotations(
+    packageInternalAnnotation: KClass<out Annotation>,
+): ArchCondition<JavaClass> =
+    object : ArchCondition<JavaClass>("have valid package internal annotations") {
+        override fun check(javaClass: JavaClass, events: ConditionEvents) {
+            if (javaClass.isAnnotatedWith(packageInternalAnnotation.java)) {
+                events.add(
+                    SimpleConditionEvent(
+                        javaClass,
+                        javaClass.isInternal(),
+                        "${javaClass.description} in ${javaClass.sourceCodeLocation}"
+                    )
+                )
+            }
+
+            javaClass.members.forEach {
+                if (it.isAnnotatedWith(packageInternalAnnotation.java)) {
+                    events.add(
+                        SimpleConditionEvent(
+                            it,
+                            it.isInternal(),
+                            "${it.description} in ${it.sourceCodeLocation}"
+                        )
+                    )
+                }
+            }
+        }
+
+        private fun JavaClass.isInternal() = try {
+            reflect().kotlin.visibility == KVisibility.INTERNAL
+        } catch (ex: UnsupportedOperationException) {
+            false
+        }
+
+        private fun JavaMember.isInternal(): Boolean = try {
+            when (val member = this.reflect()) {
+                is Constructor<*> -> member.kotlinFunction?.visibility == KVisibility.INTERNAL
+                is Field -> member.kotlinProperty?.visibility == KVisibility.INTERNAL
+                is Method -> member.kotlinFunction?.visibility == KVisibility.INTERNAL
+                else -> throw NotImplementedError("isInternal is not implemented for ${this::class.java}")
+            }
+        } catch (ex: UnsupportedOperationException) {
+            false
+        }
+    }
 
 fun CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ClassesShouldConjunction =
-    classes().should(notAccessPackageInternalElementsFromOutsidePackageHierarchy(packageInternalAnnotation))
+    classes().should(notAccessPackageInternalElementsFromOutside(packageInternalAnnotation))
 
-private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(
+private fun notAccessPackageInternalElementsFromOutside(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ArchCondition<JavaClass> =
-    object : ArchCondition<JavaClass>("not access package internal elements") {
+    object : ArchCondition<JavaClass>("not access package internal elements from outside") {
         override fun check(javaClass: JavaClass, events: ConditionEvents) {
             javaClass.directDependenciesFromSelf
                 .filter {
@@ -78,30 +111,11 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(
                     val origin = access.origin
                     val target = access.target
                     val targetIsAnnotated = target.isAnnotatedWith(packageInternalAnnotation.java)
-                    val parentIsAnnotated = target.owner.allRawSuperclasses.any { parentClass ->
-                        when (target) {
-                            is ConstructorCallTarget -> {
-                                val parameters = target.parameterTypes.map { it.name }.toTypedArray()
-                                parentClass.tryGetConstructor(*parameters).orElse(null)
-                                    ?.isAnnotatedWith(packageInternalAnnotation.java) ?: false
-                            }
-                            is FieldAccessTarget -> {
-                                parentClass.tryGetField(target.name).orElse(null)
-                                    ?.isAnnotatedWith(packageInternalAnnotation.java) ?: false
-                            }
-                            is MethodCallTarget -> {
-                                run {
-                                    val parameters = target.parameterTypes.map { it.name }.toTypedArray()
-                                    parentClass.tryGetMethod(target.name, *parameters).orElse(null)
-                                        ?.isAnnotatedWith(packageInternalAnnotation.java) ?: false
-                                } ||
-                                run {
-                                    target.backingField()?.let {
-                                        parentClass.tryGetField(it.name).orElse(null)
-                                            ?.isAnnotatedWith(packageInternalAnnotation.java) ?: false
-                                    } ?: false
-                                }
-                            }
+                    val parentIsAnnotated = target.resolveMember().orElse(null).let { member ->
+                        when (member) {
+                            is JavaConstructor -> member.anyParentIsAnnotatedWith(packageInternalAnnotation.java)
+                            is JavaField -> member.anyParentIsAnnotatedWith(packageInternalAnnotation.java)
+                            is JavaMethod -> member.anyParentIsAnnotatedWith(packageInternalAnnotation.java)
                             else -> false
                         }
                     }
@@ -126,6 +140,34 @@ private fun notAccessPackageInternalElementsFromOutsidePackageHierarchy(
 
         private fun JavaClass.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
             allRawSuperclasses.any { it.isAnnotatedWith(annotationType) }
+    }
+
+private fun JavaConstructor.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
+    owner.allRawSuperclasses.any { parentClass ->
+        val parameters = parameterTypes.map { it.name }.toTypedArray()
+        parentClass.tryGetConstructor(*parameters).orElse(null)
+            ?.isAnnotatedWith(annotationType) ?: false
+    }
+
+private fun JavaField.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
+    owner.allRawSuperclasses.any { parentClass ->
+        parentClass.tryGetField(name).orElse(null)
+            ?.isAnnotatedWith(annotationType) ?: false
+    }
+
+private fun JavaMethod.anyParentIsAnnotatedWith(annotationType: Class<out Annotation>) =
+    owner.allRawSuperclasses.any { parentClass ->
+        run {
+            val parameters = parameterTypes.map { it.name }.toTypedArray()
+            parentClass.tryGetMethod(name, *parameters).orElse(null)
+                ?.isAnnotatedWith(annotationType) ?: false
+        } ||
+        run {
+            backingField()?.let { field ->
+                parentClass.tryGetField(field.name).orElse(null)
+                    ?.isAnnotatedWith(annotationType) ?: false
+            } ?: false
+        }
     }
 
 private fun beInternal(): ArchCondition<JavaClass> =
@@ -169,7 +211,7 @@ private fun beInternalMember(): ArchCondition<JavaMember> =
 
 private fun JavaClass.isKotlinClass() = isMetaAnnotatedWith("kotlin.Metadata")
 
-private fun MethodCallTarget.backingField(): JavaField? {
+private fun JavaMethod.backingField(): JavaField? {
     if (owner.isKotlinClass()) {
         val fieldMethodMatch = Regex("^(?<fieldAction>get|set)(?<fieldName>[A-Z][^$]*).*").matchEntire(name)
         if (fieldMethodMatch != null) {

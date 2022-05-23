@@ -6,7 +6,7 @@ import com.tngtech.archunit.junit.ArchTest
 import com.tngtech.archunit.library.DependencyRules.NO_CLASSES_SHOULD_DEPEND_UPPER_PACKAGES
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
 import me.qoomon._Package
-import me.qoomon.enhancements.archunit.ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL
+import me.qoomon.enhancements.archunit.CLASSES_SHOULD_HAVE_VALID_INTERNAL_PACKAGE_ANNOTATIONS
 import me.qoomon.enhancements.archunit.CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE
 import me.qoomon.enhancements.kotlin.PackageInternal
 
@@ -26,12 +26,12 @@ class ArchUnitTest {
     // --- @PackageInternal --------------------------------------------------------------------------------------------
 
     @ArchTest
-    fun `ensure internal package elements are also marked as internal`(classes: JavaClasses) =
-        ALL_PACKAGE_INTERNAL_ELEMENTS_SHOULD_BE_INTERNAL(PackageInternal::class)
+    fun `ensure classes have valid internal package annotations`(classes: JavaClasses) =
+        CLASSES_SHOULD_HAVE_VALID_INTERNAL_PACKAGE_ANNOTATIONS(PackageInternal::class)
             .check(classes)
 
     @ArchTest
-    fun `ensure no illegal access to internal package elements`(classes: JavaClasses) {
+    fun `ensure classes do not access package internal elements from outside`(classes: JavaClasses) {
         CLASSES_SHOULD_NOT_ACCESS_PACKAGE_INTERNAL_ELEMENTS_FROM_OUTSIDE(PackageInternal::class)
             .check(classes)
     }
