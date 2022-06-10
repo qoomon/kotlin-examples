@@ -1,4 +1,3 @@
-
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -171,12 +170,14 @@ tasks {
     test {
         useJUnitPlatform()
         maxParallelForks = Runtime.getRuntime().availableProcessors().div(2).coerceAtLeast(1)
+
+        finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)
     }
 
     jacocoTestCoverageVerification {
-        dependsOn(test, jacocoTestReport)
         violationRules {
             rule {
+                element
                 limit {
                     minimum = 0.5.toBigDecimal()
                 }
@@ -185,7 +186,6 @@ tasks {
     }
 
     jacocoTestReport {
-        dependsOn(test)
         reports {
             xml.required.set(true)
             html.required.set(true)
@@ -232,46 +232,29 @@ ktlint {
 
 jacoco {
     toolVersion = "0.8.8"
-    val jacocoExcludes = listOf(
-        "de.otto.awsconfigurationmonitor.checkfunction.LambdaEntryPoint"
+    exclude(
+        "me.qoomon.demo.a.Base",
     )
-
-    tasks.withType<JacocoReportBase> {
-        classDirectories.setFrom(
-            sourceSets.main.get().output.asFileTree.matching {
-                jacocoExcludes.forEach {
-                    it.replace(".", "/")
-                        .replace("(?<!\\*\\*)$".toRegex(), ".class")
-                        .run { exclude(it) }
-                }
-            }
-        )
-    }
 }
 
-tasks.withType<JacocoReportBase> {
-    val excludes = listOf(
-        "org.exmaple.ClassName"
-    )
-
-    classDirectories.setFrom(
-        sourceSets.main.get().output.asFileTree.matching {
-            excludes.flatMap {
-                val path = it.replace(".", "/")
-                if (path.endsWith("**")) listOf(path)
-                else listOf("$path.class", "${path}\$*.class", "${path}Kt.class")
-            }.forEach { exclude(it) }
+@Suppress("unused")
+fun JacocoPluginExtension.exclude(vararg excludeRefs: String) {
+    tasks.withType<JacocoReportBase> {
+        afterEvaluate {
+            val excludePaths = excludeRefs.map { it.replace(".", "/") }
+                .flatMap { listOf("$it.class", "$it\$*.class", "${it}Kt.class", "${it}Kt\$*.class") }
+            classDirectories.setFrom(classDirectories.files.map { fileTree(it) { exclude(excludePaths) } })
         }
-    )
+    }
 }
 
 tasks.processResources {
     filesMatching("application.properties") {
-        // groovy template engine (${placholder})
-        // expand(project.properties)
-        // expand("version" to project.version)
+// groovy template engine (${placholder})
+// expand(project.properties)
+// expand("version" to project.version)
 
-        // groovy template engine (@placholder@)
+// groovy template engine (@placholder@)
         filter<ReplaceTokens>("tokens" to mapOf("version" to project.version))
     }
 }

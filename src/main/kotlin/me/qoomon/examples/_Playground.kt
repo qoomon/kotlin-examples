@@ -1,4 +1,14 @@
 package me.qoomon.examples
 
-fun main() {
+import kotlinx.coroutines.runBlocking
+
+
+
+fun main() = runBlocking<Unit> {
+
 }
+
+
+
+
+
