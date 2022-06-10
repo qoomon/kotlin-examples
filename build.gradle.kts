@@ -243,8 +243,12 @@ fun JacocoPluginExtension.exclude(vararg excludeRefs: String) {
         afterEvaluate {
             val excludePaths = excludeRefs
                 .map { it.replace(".", "/") }
-                .flatMap { listOf("$it.class", "$it\$*.class", "${it}Kt.class", "${it}Kt\$*.class") }
-
+                .flatMap {
+                    listOf(
+                        "$it.class", "$it\$*.class", // java classes
+                        "${it}Kt.class", "${it}Kt\$*.class", // kotlin classes
+                    )
+                }
             classDirectories.setFrom(classDirectories.files.map { fileTree(it) { exclude(excludePaths) } })
         }
     }
