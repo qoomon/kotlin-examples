@@ -7,7 +7,7 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 plugins {
     application
 
-    val kotlinVersion = "1.6.20"
+    val kotlinVersion = "1.7.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.serialization") version kotlinVersion
 
@@ -118,7 +118,8 @@ tasks {
             jvmTarget = JavaVersion.VERSION_17.toString()
             freeCompilerArgs = listOf(
                 "-module-name=${project.name}",
-                "-opt-in=kotlin.RequiresOptIn",
+                "-Xcontext-receivers",
+                "-Xuse-k2",
                 "-opt-in=kotlin.contracts.ExperimentalContracts",
                 "-opt-in=kotlin.time.ExperimentalTime",
                 "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
@@ -237,8 +238,8 @@ jacoco {
     )
 }
 
-@Suppress("unused")
 fun JacocoPluginExtension.exclude(vararg excludeRefs: String) {
+    @Suppress("UNUSED_EXPRESSION") this // suppress "Receiver parameter is never used"
     tasks.withType<JacocoReportBase> {
         afterEvaluate {
             val excludePaths = excludeRefs.map { it.replace(".", "/") }.flatMap {
