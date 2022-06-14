@@ -32,7 +32,7 @@ repositories {
 
 dependencies {
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlin:kotlin-script-runtime:1.5.0")
+    implementation(kotlin("script-runtime"))
     val kotlinxCoroutinesVersion = "1.6.1"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")

@@ -1,10 +1,46 @@
 package me.qoomon.enhancements.kotlin
 
+import me.qoomon.enhancements.kotlin.Requirements.Companion.requirements
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
+import kotlin.time.measureTime
 
-class Requirements private constructor() {
-    private val exceptions = mutableListOf<IllegalArgumentException>()
+// --- Usage Example ---------------------------------------------------------------------------------------------------
+
+@JvmInline
+value class DummyString1 constructor(val value: String) {
+    init {
+        require(value.length <= 8) { "value length should be less than 8" }
+        require(value == value.lowercase()) { "value should be lowercase" }
+    }
+}
+
+@JvmInline
+value class DummyString2 constructor(val value: String) {
+    init {
+        requirements {
+            require(value.length <= 8) { "value length should be less than 8" }
+            require(value == value.lowercase()) { "value should be lowercase" }
+        }
+    }
+}
+
+fun main() {
+    println(
+        measureTime {
+            repeat(1_000_000_000) {
+                DummyString2("abc")
+            }
+        }
+    )
+}
+
+// --- Implementation ---------------------------------------------------------------------------------------------------
+
+@JvmInline
+value class Requirements private constructor(
+    private val exceptions: MutableList<IllegalArgumentException> = mutableListOf()
+) {
 
     fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
         contract {
@@ -34,9 +70,10 @@ class Requirements private constructor() {
         }
     }
 }
-
-class Checks private constructor() {
-    private val exceptions = mutableListOf<IllegalStateException>()
+@JvmInline
+value class Checks private constructor(
+    private val exceptions: MutableList<IllegalStateException> = mutableListOf()
+) {
 
     fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
         contract {
@@ -67,12 +104,11 @@ class Checks private constructor() {
     }
 }
 
-private fun <T : Throwable> T.removeSelfStackTraceElements(self: KClass<*>): T {
+fun Throwable.removeSelfStackTraceElements(self: KClass<*>) {
     val qualifiedName = self.qualifiedName!!
     val qualifiedNameSubClassPrefix = "$qualifiedName$"
     stackTrace = stackTrace.filterNot {
         it.className == qualifiedName || it.className.startsWith(qualifiedNameSubClassPrefix)
     }.toTypedArray()
     suppressed.forEach { it.removeSelfStackTraceElements(self) }
-    return this
 }
