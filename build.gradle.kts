@@ -119,7 +119,6 @@ tasks {
             freeCompilerArgs = listOf(
                 "-module-name=${project.name}",
                 "-Xcontext-receivers",
-                "-Xuse-k2",
                 "-opt-in=kotlin.contracts.ExperimentalContracts",
                 "-opt-in=kotlin.time.ExperimentalTime",
                 "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",

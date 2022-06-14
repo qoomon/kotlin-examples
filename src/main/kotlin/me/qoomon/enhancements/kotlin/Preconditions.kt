@@ -1,27 +1,78 @@
 package me.qoomon.enhancements.kotlin
 
-fun require(vararg requirements: () -> Unit) {
-    val exceptions = requirements.mapNotNull {
-        try {
-            it(); null
-        } catch (ex: IllegalArgumentException) {
-            ex
+import kotlin.contracts.contract
+import kotlin.reflect.KClass
+
+class Requirements private constructor() {
+    private val exceptions = mutableListOf<IllegalArgumentException>()
+
+    fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
+        contract {
+            returns() implies value
+        }
+        if (!value) {
+            val message = lazyMessage()
+            exceptions += IllegalArgumentException(message.toString())
         }
     }
-    if (exceptions.isNotEmpty()) {
-        throw IllegalArgumentException("Failed requirements.").apply {
-            val self = stackTrace[0]
-            // hide require call from stacktrace
-            stackTrace = stackTrace.drop(1).toTypedArray()
-            exceptions.forEach { ex ->
-                ex.apply {
-                    stackTrace = stackTrace.filterNot {
-                        it.className == self.className &&
-                        it.methodName == self.methodName
-                    }.toTypedArray()
-                }
-                addSuppressed(ex)
+
+    companion object {
+        fun requirements(block: Requirements.() -> Unit) = requirements(null) { block() }
+
+        fun <T> requirements(subject: T?, block: Requirements.(T?) -> Unit) {
+            Requirements().apply { block(subject) }.exceptions.run {
+                if (isEmpty()) return
+
+                throw IllegalArgumentException(
+                    "${subject ?: ""}" +
+                    "\n\tFailed requirement(s):" +
+                    "\n${joinToString("\n") { "\t\t- " + it.message }}"
+                )
+                    .apply { forEach(::addSuppressed) }
+                    .apply { removeSelfStackTraceElements(Requirements::class) }
             }
         }
     }
+}
+
+class Checks private constructor() {
+    private val exceptions = mutableListOf<IllegalStateException>()
+
+    fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
+        contract {
+            returns() implies value
+        }
+        if (!value) {
+            val message = lazyMessage()
+            exceptions += IllegalStateException(message.toString())
+        }
+    }
+
+    companion object {
+        fun checks(block: Checks.() -> Unit) = checks(null) { block() }
+
+        fun <T> checks(subject: T?, block: Checks.(T?) -> Unit) {
+            Checks().apply { block(subject) }.exceptions.run {
+                if (isEmpty()) return
+
+                throw IllegalStateException(
+                    "${subject ?: ""}" +
+                    "\n\tCheck(s) failed:" +
+                    "\n${joinToString("\n") { "\t\t- " + it.message }}"
+                )
+                    .apply { forEach(::addSuppressed) }
+                    .apply { removeSelfStackTraceElements(Checks::class) }
+            }
+        }
+    }
+}
+
+private fun <T : Throwable> T.removeSelfStackTraceElements(self: KClass<*>): T {
+    val qualifiedName = self.qualifiedName!!
+    val qualifiedNameSubClassPrefix = "$qualifiedName$"
+    stackTrace = stackTrace.filterNot {
+        it.className == qualifiedName || it.className.startsWith(qualifiedNameSubClassPrefix)
+    }.toTypedArray()
+    suppressed.forEach { it.removeSelfStackTraceElements(self) }
+    return this
 }

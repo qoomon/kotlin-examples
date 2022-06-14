@@ -1,14 +1,14 @@
 package me.qoomon.examples
 
-import me.qoomon.enhancements.kotlin.require
+import me.qoomon.enhancements.kotlin.Requirements.Companion.requirements
 
 @JvmInline
 value class DummyString constructor(val value: String) {
     init {
-        require(
-            { require(value.length <= 8) { "length should be less than 8, but was $value" } },
-            { require(value == value.lowercase()) { "should be lowercase, but was $value" } },
-        )
+        requirements {
+            require(value.length <= 8) { "value length should be less than 8" }
+            require(value == value.lowercase()) { "value should be lowercase" }
+        }
     }
 }
 
