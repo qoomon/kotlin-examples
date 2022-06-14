@@ -1,24 +1,15 @@
 package me.qoomon.enhancements.kotlin
 
-import me.qoomon.enhancements.kotlin.Requirements.Companion.requirements
+import me.qoomon.enhancements.kotlin.ConditionsContext.Companion.conditionsContext
 import kotlin.contracts.contract
-import kotlin.reflect.KClass
 import kotlin.time.measureTime
 
 // --- Usage Example ---------------------------------------------------------------------------------------------------
 
 @JvmInline
-value class DummyString1 constructor(val value: String) {
+value class Dummy constructor(val value: String) {
     init {
-        require(value.length <= 8) { "value length should be less than 8" }
-        require(value == value.lowercase()) { "value should be lowercase" }
-    }
-}
-
-@JvmInline
-value class DummyString2 constructor(val value: String) {
-    init {
-        requirements {
+        conditionsContext(this) {
             require(value.length <= 8) { "value length should be less than 8" }
             require(value == value.lowercase()) { "value should be lowercase" }
         }
@@ -26,89 +17,49 @@ value class DummyString2 constructor(val value: String) {
 }
 
 fun main() {
-    println(
-        measureTime {
-            repeat(1_000_000_000) {
-                DummyString2("abc")
+    // Dummy("abcA")
+    repeat(10) {
+        println(
+            measureTime {
+                repeat(1_000_000_000) {
+                    Dummy("abc")
+                }
             }
-        }
-    )
+        )
+    }
 }
 
 // --- Implementation ---------------------------------------------------------------------------------------------------
 
-@JvmInline
-value class Requirements private constructor(
-    private val exceptions: MutableList<IllegalArgumentException> = mutableListOf()
-) {
+class ConditionsContext(private val lazyContextMessage: () -> Any) {
 
-    fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
+    inline fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
         contract {
             returns() implies value
         }
-        if (!value) {
-            val message = lazyMessage()
-            exceptions += IllegalArgumentException(message.toString())
-        }
+        kotlin.require(value) { lazyMessage().toString().addContext() }
     }
 
-    companion object {
-        fun requirements(block: Requirements.() -> Unit) = requirements(null) { block() }
-
-        fun <T> requirements(subject: T?, block: Requirements.(T?) -> Unit) {
-            Requirements().apply { block(subject) }.exceptions.run {
-                if (isEmpty()) return
-
-                throw IllegalArgumentException(
-                    "${subject ?: ""}" +
-                    "\n\tFailed requirement(s):" +
-                    "\n${joinToString("\n") { "\t\t- " + it.message }}"
-                )
-                    .apply { forEach(::addSuppressed) }
-                    .apply { removeSelfStackTraceElements(Requirements::class) }
-            }
-        }
-    }
-}
-@JvmInline
-value class Checks private constructor(
-    private val exceptions: MutableList<IllegalStateException> = mutableListOf()
-) {
-
-    fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
+    inline fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
         contract {
             returns() implies value
         }
-        if (!value) {
-            val message = lazyMessage()
-            exceptions += IllegalStateException(message.toString())
-        }
+        kotlin.check(value) { lazyMessage().toString().addContext() }
     }
+
+    fun error(message: Any): Nothing = kotlin.error(message.toString().addContext())
+
+    fun String.addContext() = this + "\n" +
+                              "\t\t" + lazyContextMessage().toString()
 
     companion object {
-        fun checks(block: Checks.() -> Unit) = checks(null) { block() }
 
-        fun <T> checks(subject: T?, block: Checks.(T?) -> Unit) {
-            Checks().apply { block(subject) }.exceptions.run {
-                if (isEmpty()) return
+        inline fun conditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
+            conditionsContext({ contextMessage }, block)
+        }
 
-                throw IllegalStateException(
-                    "${subject ?: ""}" +
-                    "\n\tCheck(s) failed:" +
-                    "\n${joinToString("\n") { "\t\t- " + it.message }}"
-                )
-                    .apply { forEach(::addSuppressed) }
-                    .apply { removeSelfStackTraceElements(Checks::class) }
-            }
+        inline fun conditionsContext(noinline lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
+            ConditionsContext(lazyContextMessage).apply { block() }
         }
     }
-}
-
-fun Throwable.removeSelfStackTraceElements(self: KClass<*>) {
-    val qualifiedName = self.qualifiedName!!
-    val qualifiedNameSubClassPrefix = "$qualifiedName$"
-    stackTrace = stackTrace.filterNot {
-        it.className == qualifiedName || it.className.startsWith(qualifiedNameSubClassPrefix)
-    }.toTypedArray()
-    suppressed.forEach { it.removeSelfStackTraceElements(self) }
 }
