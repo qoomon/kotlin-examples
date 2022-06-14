@@ -1,6 +1,5 @@
 package me.qoomon.enhancements.kotlin
 
-import me.qoomon.enhancements.kotlin.ConditionsContext.Companion.conditionsContext
 import kotlin.contracts.contract
 import kotlin.time.measureTime
 
@@ -31,35 +30,33 @@ fun main() {
 
 // --- Implementation ---------------------------------------------------------------------------------------------------
 
-class ConditionsContext(private val lazyContextMessage: () -> Any) {
+class ConditionsContext constructor(private val lazyContextMessage: () -> Any) {
 
-    inline fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
+    fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
         contract {
             returns() implies value
         }
-        kotlin.require(value) { lazyMessage().toString().addContext() }
+        kotlin.require(value) { lazyMessage().toString().appendContext() }
     }
 
-    inline fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
+    fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
         contract {
             returns() implies value
         }
-        kotlin.check(value) { lazyMessage().toString().addContext() }
+        kotlin.check(value) { lazyMessage().toString().appendContext() }
     }
 
-    fun error(message: Any): Nothing = kotlin.error(message.toString().addContext())
+    fun error(message: Any): Nothing = kotlin.error(message.toString().appendContext())
 
-    fun String.addContext() = this + "\n" +
-                              "\t\t" + lazyContextMessage().toString()
+    private fun String.appendContext() =
+        this + "\n" +
+        "\t\t" + lazyContextMessage().toString()
+}
 
-    companion object {
+fun conditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
+    conditionsContext({ contextMessage }, block)
+}
 
-        inline fun conditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
-            conditionsContext({ contextMessage }, block)
-        }
-
-        inline fun conditionsContext(noinline lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
-            ConditionsContext(lazyContextMessage).apply { block() }
-        }
-    }
+fun conditionsContext(lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
+    ConditionsContext(lazyContextMessage).apply { block() }
 }
