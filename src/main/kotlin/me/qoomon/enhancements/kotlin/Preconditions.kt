@@ -8,7 +8,7 @@ import kotlin.time.measureTime
 @JvmInline
 value class Dummy constructor(val value: String) {
     init {
-        conditionsContext(this) {
+        preconditionsContext(this) {
             require(value.length <= 8) { "value length should be less than 8" }
             require(value == value.lowercase()) { "value should be lowercase" }
         }
@@ -30,16 +30,16 @@ fun main() {
 
 // --- Implementation ---------------------------------------------------------------------------------------------------
 
-class ConditionsContext constructor(private val lazyContextMessage: () -> Any) {
+class ConditionsContext constructor(val lazyContextMessage: () -> Any) {
 
-    fun require(value: Boolean, lazyMessage: () -> Any = { "Failed requirement." }) {
+    fun require(value: Boolean, lazyMessage: () -> Any) {
         contract {
             returns() implies value
         }
         kotlin.require(value) { lazyMessage().toString().appendContext() }
     }
 
-    fun check(value: Boolean, lazyMessage: () -> Any = { "Check failed." }) {
+    fun check(value: Boolean, lazyMessage: () -> Any) {
         contract {
             returns() implies value
         }
@@ -48,15 +48,14 @@ class ConditionsContext constructor(private val lazyContextMessage: () -> Any) {
 
     fun error(message: Any): Nothing = kotlin.error(message.toString().appendContext())
 
-    private fun String.appendContext() =
-        this + "\n" +
-        "\t\t" + lazyContextMessage().toString()
+    private fun String.appendContext() = this + "\n" +
+        "\t\t" + lazyContextMessage()
 }
 
-fun conditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
-    conditionsContext({ contextMessage }, block)
+fun preconditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
+    preconditionsContext({ contextMessage }, block)
 }
 
-fun conditionsContext(lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
+fun preconditionsContext(lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
     ConditionsContext(lazyContextMessage).apply { block() }
 }

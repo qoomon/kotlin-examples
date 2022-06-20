@@ -1,15 +1,13 @@
+@file:Suppress("UnstableApiUsage")
+
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
-import org.apache.tools.ant.filters.ReplaceTokens
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     application
-
-    val kotlinVersion = "1.7.0"
-    kotlin("jvm") version kotlinVersion
-    kotlin("plugin.serialization") version kotlinVersion
+    kotlin("jvm") version "1.7.0"; java
+    kotlin("plugin.serialization") version "1.7.0"
 
     id("com.dorongold.task-tree") version "2.1.0"
     id("com.github.ben-manes.versions") version "0.42.0"
@@ -23,24 +21,39 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.1.2"
 
     idea
-    java
 }
 
-repositories {
-    mavenCentral()
+kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                // allWarningsAsErrors = true
+                jvmTarget = JavaVersion.VERSION_17.toString()
+                freeCompilerArgs = listOf(
+                    "-module-name=${project.name}",
+                    "-Xcontext-receivers",
+                    "-opt-in=kotlin.contracts.ExperimentalContracts",
+                    "-opt-in=kotlin.time.ExperimentalTime",
+                    "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
+                )
+            }
+        }
+    }
 }
+
+repositories { mavenCentral() }
 
 dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("script-runtime"))
-    val kotlinxCoroutinesVersion = "1.6.1"
+
+    val kotlinxCoroutinesVersion = "1.6.2"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
 
     // Dependency Injection
-    val koinVersion = "3.2.0-beta-1"
-
+    val koinVersion = "3.2.0"
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
@@ -52,13 +65,13 @@ dependencies {
     // JSON Dependencies
     implementation("com.google.code.gson:gson:2.9.0")
 
-    val jacksonVersion = "2.13.2"
+    val jacksonVersion = "2.13.3"
     implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
     implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     // Logging Dependencies
-    implementation("io.github.microutils:kotlin-logging:2.1.21")
+    implementation("io.github.microutils:kotlin-logging:2.1.23")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
     val log4jVersion = "2.17.2"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
@@ -69,12 +82,12 @@ dependencies {
     }
 
     // Database Dependencies
-    val exposedVersion = "0.38.1"
+    val exposedVersion = "0.38.2"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.postgresql:postgresql:42.3.4")
+    implementation("org.postgresql:postgresql:42.3.6")
     implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")
     implementation("com.zaxxer:HikariCP:5.0.1")
 
@@ -87,7 +100,7 @@ dependencies {
     testImplementation("io.insert-koin:koin-test:$koinVersion")
     testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 
-    val kotestVersion = "5.2.3"
+    val kotestVersion = "5.3.0"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
@@ -98,7 +111,7 @@ dependencies {
 
     testImplementation("io.mockk:mockk:1.12.4")
 
-    val testContainersVersion = "1.17.1"
+    val testContainersVersion = "1.17.2"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
@@ -106,24 +119,112 @@ dependencies {
     testImplementation("com.tngtech.archunit:archunit-junit5:0.23.1")
 }
 
+application {
+    mainClass.set("me.qoomon.examples.MainKt")
+}
+
+testing {
+    suites {
+        val test by getting(JvmTestSuite::class) {
+            useJUnitJupiter()
+
+            sources {
+                java {
+                    exclude("**/*IT.kt")
+                }
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        // set a system property for the test JVM(s)
+                        systemProperty("some.prop", "value")
+                        options {
+                            maxParallelForks = Runtime.getRuntime().availableProcessors().coerceAtLeast(1)
+                        }
+                    }
+                }
+            }
+        }
+
+        val integrationTest by registering(JvmTestSuite::class) {
+            useJUnitJupiter()
+
+            dependencies {
+                implementation(project)
+                // add test dependencies (optiona, if not needed)
+                configurations.testImplementation {
+                    dependencies.forEach(::implementation)
+                }
+            }
+
+            sources {
+                java {
+                    setSrcDirs(
+                        listOf(
+                            "src/main/kotlin",
+                            "src/test/kotlin",
+                        )
+                    )
+                    include("**/*IT.kt")
+                }
+            }
+
+            targets {
+                all {
+                    testTask.configure {
+                        shouldRunAfter(test)
+                    }
+                }
+            }
+        }
+    }
+}
+
+testlogger {
+    theme = MOCHA_PARALLEL
+    showSimpleNames = true
+}
+
+jacoco {
+    toolVersion = "0.8.8"
+    exclude(
+        "me.qoomon.demo.a.Base",
+    )
+}
+
+ktlint {
+//    ignoreFailures.set(true)
+    version.set("0.45.2")
+    enableExperimentalRules.set(true)
+    reporters {
+        reporter(PLAIN)
+        reporter(CHECKSTYLE)
+    }
+}
+
 tasks {
+
+    processResources {
+        filesMatching("application.properties") {
+            // groovy template engine($ { placholder })
+            expand(project.properties)
+            expand("version" to project.version)
+
+//            // groovy template engine (@placholder@)
+//            filter<ReplaceTokens>(
+//                "tokens" to mapOf(
+//                    "version" to project.version
+//                )
+//            )
+        }
+    }
 
     withType<JavaExec> {
         standardInput = System.`in`
     }
 
-    withType<KotlinCompile> {
-        kotlinOptions {
-            // allWarningsAsErrors = true
-            jvmTarget = JavaVersion.VERSION_17.toString()
-            freeCompilerArgs = listOf(
-                "-module-name=${project.name}",
-                "-Xcontext-receivers",
-                "-opt-in=kotlin.contracts.ExperimentalContracts",
-                "-opt-in=kotlin.time.ExperimentalTime",
-                "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
-            )
-        }
+    withType<JavaExec>().configureEach {
     }
 
     jar {
@@ -144,34 +245,30 @@ tasks {
         ).onEach { it.isCanBeResolved = true }
         // </WORKAROUND>
     }
-//
-//
-//    val jarDependencies = register<Jar>("jarDependencies") {
-//        archiveClassifier.set("dependencies")
-//        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-//        exclude("META-INF/INDEX.LIST", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "module-info.class")
-//    }
-//
-//    val jarApp = register<Jar>("jarApp") {
-//        archiveClassifier.set("app")
-//        from(sourceSets.main.get().output)
-//    }
-//
-//    jar {
-//        archiveClassifier.set("all")
-//        with(jarDependencies.get())
-//    }
-//
-//    shadowJar {
-//        archiveClassifier.set("shadow")
-//        minimize()
-//    }
 
-    test {
+    withType<Test>().configureEach {
         useJUnitPlatform()
-        maxParallelForks = Runtime.getRuntime().availableProcessors().div(2).coerceAtLeast(1)
+        // exclude("**/*IT.class")
+    }
 
-        finalizedBy(jacocoTestReport, jacocoTestCoverageVerification)
+    // test {
+    //     useJUnitPlatform()
+    // }
+    //
+    // register<Test>("integrationTest") {
+    //     group = VERIFICATION_GROUP
+    //     description = "Runs the integration test suite."
+    //     useJUnitPlatform()
+    //     include("**/*IT.class")
+    // }
+
+    check {
+        dependsOn(testing.suites)
+        dependsOn(jacocoTestReport)
+        dependsOn(jacocoTestCoverageVerification)
+    }
+
+    jacocoTestReport {
     }
 
     jacocoTestCoverageVerification {
@@ -185,18 +282,11 @@ tasks {
         }
     }
 
-    jacocoTestReport {
-        reports {
-            xml.required.set(true)
-            html.required.set(true)
-        }
-    }
-
-    register("version") {
+    register<Task>("version") {
         println(project.version)
     }
 
-    register("versionSet") {
+    register<Task>("versionSet") {
         val propertyFile = project.file("gradle.properties")
         val property = "version" to project.version
         val propertyFileContent = propertyFile.readText()
@@ -211,54 +301,20 @@ tasks {
     }
 }
 
-application {
-    mainClass.set("me.qoomon.examples.MainKt")
-}
-
-testlogger {
-    theme = MOCHA_PARALLEL
-    showSimpleNames = true
-}
-
-ktlint {
-//    ignoreFailures.set(true)
-    version.set("0.45.2")
-    enableExperimentalRules.set(true)
-    reporters {
-        reporter(PLAIN)
-        reporter(CHECKSTYLE)
-    }
-}
-
-jacoco {
-    toolVersion = "0.8.8"
-    exclude(
-        "me.qoomon.demo.a.Base",
-    )
-}
+// --- Helper Functions ------------------------------------------------------------------------------------------------
 
 fun JacocoPluginExtension.exclude(vararg excludeRefs: String) {
-    @Suppress("UNUSED_EXPRESSION") this // suppress "Receiver parameter is never used"
-    tasks.withType<JacocoReportBase> {
-        afterEvaluate {
-            val excludePaths = excludeRefs.map { it.replace(".", "/") }.flatMap {
-                listOf(
-                    "$it.class", "$it\$*.class", // java classes
-                    "${it}Kt.class", "${it}Kt\$*.class", // kotlin classes
-                )
-            }
-            classDirectories.setFrom(classDirectories.files.map { fileTree(it) { exclude(excludePaths) } })
-        }
-    }
+    tasks.withType<JacocoReportBase>().configureEach { exclude(*excludeRefs) }
 }
 
-tasks.processResources {
-    filesMatching("application.properties") {
-// groovy template engine (${placholder})
-// expand(project.properties)
-// expand("version" to project.version)
-
-// groovy template engine (@placholder@)
-        filter<ReplaceTokens>("tokens" to mapOf("version" to project.version))
-    }
+fun JacocoReportBase.exclude(vararg excludeRefs: String) {
+    val excludePaths = excludeRefs
+        .map { it.replace(".", "/") }
+        .flatMap {
+            listOf(
+                "$it.class", "$it\$*.class", // java classes
+                "${it}Kt.class", "${it}Kt\$*.class", // kotlin classes
+            )
+        }
+    this.classDirectories.setFrom(files(this.classDirectories.files.map { fileTree(it) { exclude(excludePaths) } }))
 }
