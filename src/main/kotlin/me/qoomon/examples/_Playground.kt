@@ -1,8 +1,11 @@
 package me.qoomon.examples
 
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-fun main() = runBlocking<Unit> {
-
-
+suspend fun main() = runBlocking<Unit> {
+    (1..10).forEach {
+            launch {
+            }
+    }
 }
