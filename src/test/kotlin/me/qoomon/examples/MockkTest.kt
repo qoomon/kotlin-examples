@@ -1,11 +1,9 @@
 package me.qoomon.examples
 
-import io.mockk.Runs
-import io.mockk.confirmVerified
-import io.mockk.every
+import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import io.mockk.just
-import io.mockk.mockk
+import me.qoomon.enhancements.mockk.anyValue
+import me.qoomon.enhancements.mockk.captureValue
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -60,8 +58,8 @@ class MockkTest {
     }
 
     @Test
-    fun `slot`() {
-        val slot = slot<String>()
+    fun `slot test`() {
+        val slot = listSlot<String>()
         val dummy = mockk<Dummy> {
             every { setData(capture(slot)) } just Runs
         }
@@ -73,14 +71,43 @@ class MockkTest {
         println(slot)
     }
 
+    @Test
+    fun `mockk for any value class parameters`() {
+        val mock = mockk<ValueServiceDummy>(relaxed = true)
+        every { mock.doSomething(anyValue()) } returns 1
+
+        mock.doSomething(ValueDummy("s"))
+    }
+
+    @Test
+    fun `mockk with value class slot`() {
+
+        val slot = slot<ValueDummy>()
+        val mock = mockk<ValueServiceDummy>(relaxed = true)
+        every { mock.doSomething(captureValue(slot)) } returns 1
+
+        val callParameter = ValueDummy("s")
+
+        mock.doSomething(callParameter)
+
+        expectThat(slot.captured).isEqualTo(callParameter)
+    }
+
     private class Dummy {
         fun <T> transaction(block: Dummy.() -> T) = block()
         fun getData() = "real data"
         fun setData(value: String) {}
     }
+
+    @JvmInline
+    value class ValueDummy(val value: String)
+
+    interface ValueServiceDummy {
+        fun doSomething(value: ValueDummy): Int
+    }
 }
 
-inline fun <reified T : Any> slot() = ListCapturingSlot<T>()
+inline fun <reified T : Any> listSlot() = ListCapturingSlot<T>()
 
 class ListCapturingSlot<T : Any> private constructor(private val captureList: MutableList<T>) :
     MutableList<T> by captureList {
