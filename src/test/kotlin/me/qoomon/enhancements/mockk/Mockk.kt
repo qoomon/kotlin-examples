@@ -23,35 +23,32 @@ fun <T : Any> verifyAllMemberPropertiesGet(obj: T, vararg except: KProperty1<T, 
 inline fun <reified T : Any> MockKMatcherScope.anyValue(): T {
     if (!T::class.isValue) return any()
 
-    val callRecorder = getProperty("callRecorder") as MockKGateway.CallRecorder
+    val constructor = T::class.primaryConstructor!!.apply { isAccessible = true }
+    val rawType = constructor.parameters[0].type.classifier as KClass<*>
 
-    val primaryValueConstructor = T::class.primaryConstructor!!.apply { isAccessible = true }
-    val valueType = primaryValueConstructor.let { it.parameters[0].type.classifier as KClass<*> }
-
-    val anyValue = callRecorder.matcher(ConstantMatcher<T>(true), valueType)
-    return primaryValueConstructor.call(anyValue)
+    val anyRawValue = callRecorder.matcher(ConstantMatcher<T>(true), rawType)
+    return constructor.call(anyRawValue)
 }
-
-// doesn't work :(
 
 inline fun <reified T : Any> MockKMatcherScope.captureValue(slot: CapturingSlot<T>): T {
     if (!T::class.isValue) return capture(slot)
 
-    val callRecorder = getProperty("callRecorder") as MockKGateway.CallRecorder
+    val constructor = T::class.primaryConstructor!!.apply { isAccessible = true }
+    val rawType = constructor.parameters[0].type.classifier as KClass<*>
 
-    val primaryValueConstructor = T::class.primaryConstructor!!.apply { isAccessible = true }
-    val valueType = primaryValueConstructor.let { it.parameters[0].type.classifier as KClass<*> }
-
-    val anyValue = callRecorder.matcher(CapturingValueSlotMatcher(slot, valueType, primaryValueConstructor), valueType)
-    return primaryValueConstructor.call(anyValue)
+    val anyRawValue = callRecorder.matcher(CapturingValueSlotMatcher(slot, constructor, rawType), rawType)
+    return constructor.call(anyRawValue)
 }
+
+val MockKMatcherScope.callRecorder: MockKGateway.CallRecorder
+    get() = getProperty("callRecorder") as MockKGateway.CallRecorder
 
 data class CapturingValueSlotMatcher<T : Any>(
     val captureSlot: CapturingSlot<T>,
+    val valueConstructor: KFunction<T>,
     override val argumentType: KClass<*>,
-    val valueConstructor: KFunction<T>
 ) : Matcher<T>, CapturingMatcher, TypedMatcher, EquivalentMatcher {
-    override fun equivalent(): Matcher<Any> = ConstantMatcher<Any>(true)
+    override fun equivalent(): Matcher<Any> = ConstantMatcher(true)
 
     @Suppress("UNCHECKED_CAST")
     override fun capture(arg: Any?) {
