@@ -1,34 +1,21 @@
 package me.qoomon.enhancements.kotlin
 
 import kotlin.contracts.contract
-import kotlin.time.measureTime
 
-// --- Usage Example ---------------------------------------------------------------------------------------------------
-
-@JvmInline
-value class Dummy constructor(val value: String) {
-    init {
-        preconditionsContext(this) {
-            require(value.length <= 8) { "value length should be less than 8" }
-            require(value == value.lowercase()) { "value should be lowercase" }
-        }
-    }
-}
-
-fun main() {
-    // Dummy("abcA")
-    repeat(10) {
-        println(
-            measureTime {
-                repeat(1_000_000_000) {
-                    Dummy("abc")
-                }
-            }
-        )
-    }
-}
-
-// --- Implementation ---------------------------------------------------------------------------------------------------
+/**
+ * Usage Example
+ * ```kotlin
+ *  @JvmInline
+ *  value class Dummy constructor(val value: String) {
+ *      init {
+ *          preconditionsContext(this) {
+ *              require(value.length <= 8) { "value length should be less than 8" }
+ *              require(value == value.lowercase()) { "value should be lowercase" }
+ *          }
+ *      }
+ *  }
+ * ```
+ */
 
 class ConditionsContext constructor(val lazyContextMessage: () -> Any) {
 
