@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon.enhancements.kotlin
 
 inline infix fun (() -> Boolean).and(crossinline that: () -> Boolean): () -> Boolean = { this() && that() }
 

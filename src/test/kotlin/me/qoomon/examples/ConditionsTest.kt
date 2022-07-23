@@ -1,5 +1,8 @@
 package me.qoomon.examples
 
+import me.qoomon.enhancements.kotlin.and
+import me.qoomon.enhancements.kotlin.or
+import me.qoomon.enhancements.kotlin.xor
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isFalse
