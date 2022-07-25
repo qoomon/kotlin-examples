@@ -2,7 +2,8 @@ package me.qoomon.enhancements.kotlin
 
 import kotlin.reflect.*
 import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.full.primaryConstructor
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.jvm.internal.impl.load.kotlin.header.KotlinClassHeader
 import kotlin.reflect.jvm.isAccessible
 
 /**
@@ -28,16 +29,15 @@ private val <T : Any> KClass<T>.boxedProperty: KProperty1<T, *>
     // value classes always have exactly one property
     else this.declaredMemberProperties.first().apply { isAccessible = true }
 
-/**
- * POLYFILL for kotlin version < 1.5
- * will be shadowed by implementation in kotlin SDK 1.5+
- *
- * @return true if this is an inline class, else false
- */
-val <T : Any> KClass<T>.isValue: Boolean
+private val <T : Any> KClass<T>.isValue_safe: Boolean
     get() = try {
-        !isData && primaryConstructor?.parameters?.size == 1 &&
-            java.declaredMethods.any { it.name == "box-impl" }
+        this.isValue
     } catch (_: UnsupportedOperationException) {
         false
     }
+
+val KClass<*>.isKotlin: Boolean
+    /**
+     * @see [KotlinClassHeader.Kind]
+     */
+    get() = this.findAnnotation<Metadata>()?.kind == 1
