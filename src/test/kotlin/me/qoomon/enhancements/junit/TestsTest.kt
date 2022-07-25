@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon.enhancements.junit
 
 import io.mockk.mockk
 import io.mockk.verify
@@ -12,7 +12,7 @@ import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
 import kotlin.math.pow
 
-class JUnitUtilsTest {
+class TestsTest {
 
     @Test
     fun parameterizedTest() {
@@ -30,11 +30,7 @@ class JUnitUtilsTest {
         }
 
         // When
-        val dynamicTests = parameterizedTest(
-            cases = testCases,
-            displayName = testDisplayName,
-            test = testMethod
-        )
+        val dynamicTests = parameterizedTest(cases = testCases, displayName = testDisplayName, test = testMethod)
 
         dynamicTests.forEach {
             it.executable.execute()
@@ -59,34 +55,21 @@ class JUnitUtilsTest {
 
     @TestFactory
     fun `parameterizedTest example`() = parameterizedTest(
-        test = {
-            // Given: see Case
-
-            // When
-            val result = givenBase.pow(givenExponent)
-
-            // Then
-            assertThat(result, IsEqual(expectedResult))
+        cases = {
+            data class Case(val givenBase: Double, val givenExponent: Double, val expectedResult: Double)
+            listOf(
+                Case(givenBase = 2.0, givenExponent = 2.0, expectedResult = 4.0),
+                Case(givenBase = 3.0, givenExponent = 4.0, expectedResult = 81.0)
+            )
         },
         displayName = { "$givenBase^$givenExponent should be $expectedResult" },
-        cases = {
-            data class Case(
-                val givenBase: Double,
-                val givenExponent: Double,
-                val expectedResult: Double
-            )
-            listOf(
-                Case(
-                    givenBase = 2.0,
-                    givenExponent = 2.0,
-                    expectedResult = 4.0
-                ),
-                Case(
-                    givenBase = 3.0,
-                    givenExponent = 4.0,
-                    expectedResult = 81.0
-                )
-            )
-        }
-    )
+    ) {
+        // Given: see Case
+
+        // When
+        val result = givenBase.pow(givenExponent)
+
+        // Then
+        assertThat(result, IsEqual(expectedResult))
+    }
 }

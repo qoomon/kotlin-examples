@@ -1,5 +1,6 @@
 package me.qoomon.examples
 
+import me.qoomon.enhancements.junit.parameterizedTest
 import org.junit.jupiter.api.TestFactory
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo

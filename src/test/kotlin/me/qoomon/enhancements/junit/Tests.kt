@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon.enhancements.junit
 
 import org.junit.jupiter.api.DynamicTest
 import org.junit.jupiter.api.DynamicTest.dynamicTest
@@ -9,16 +9,6 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
  * ```
  * @TestFactory
  * fun `parameterizedTest example`() = parameterizedTest(
- *     test = {
- *         // Given: see Case
- *
- *         // When
- *         val result = givenBase.pow(givenExponent)
- *
- *         // Then
- *         Assert.assertThat(result, IsEqual(expectedResult))
- *     },
- *     displayName = { "$givenBase^$givenExponent should be $expectedResult" },
  *     cases = {
  *         data class Case(
  *             val givenBase: Double,
@@ -37,8 +27,17 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
  *                     expectedResult = 81.0
  *             )
  *         )
- *     }
- * )
+ *     },
+ *     displayName = { "$givenBase^$givenExponent should be $expectedResult" }
+ * ) {
+ *     // Given: see Case
+ *
+ *     // When
+ *     val result = givenBase.pow(givenExponent)
+ *
+ *     // Then
+ *     Assert.assertThat(result, IsEqual(expectedResult))
+ * }
  * ```
  */
 fun <T> parameterizedTest(

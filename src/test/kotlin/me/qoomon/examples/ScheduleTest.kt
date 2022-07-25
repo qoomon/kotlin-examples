@@ -4,6 +4,7 @@ import com.cronutils.model.CronType
 import com.cronutils.model.definition.CronDefinitionBuilder
 import com.cronutils.model.time.ExecutionTime
 import com.cronutils.parser.CronParser
+import me.qoomon.enhancements.junit.parameterizedTest
 import org.junit.jupiter.api.TestFactory
 import org.quartz.CronExpression
 import strikt.api.expectThat
