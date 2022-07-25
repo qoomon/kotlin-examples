@@ -8,7 +8,7 @@ import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.isAccessible
 
-fun <T : Any> verifyAllMemberPropertiesGet(obj: T, vararg except: KProperty1<T, *>) {
+fun <T : Any> verifyGetForAllMemberProperties(obj: T, vararg except: KProperty1<T, *>) {
     verify {
         obj::class.memberProperties.forEach {
             if (it in except) return@forEach
