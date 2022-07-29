@@ -6,17 +6,17 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     application
-    kotlin("jvm") version "1.7.0"; java
-    kotlin("plugin.serialization") version "1.7.0"
+    kotlin("jvm") version "1.7.20-Beta"; java
+    kotlin("plugin.serialization") version "1.7.20-Beta"
 
     id("com.dorongold.task-tree") version "2.1.0"
     id("com.github.ben-manes.versions") version "0.42.0"
     id("com.adarshr.test-logger") version "3.2.0"
 
-    id("org.jlleitschuh.gradle.ktlint") version "10.2.1"
+    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
 
     jacoco
-    id("org.barfuin.gradle.jacocolog") version "2.0.0"
+    id("org.barfuin.gradle.jacocolog") version "3.0.0-RC2"
 
     id("com.github.johnrengelman.shadow") version "7.1.2"
 
@@ -47,10 +47,10 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("script-runtime"))
 
-    val kotlinxCoroutinesVersion = "1.6.2"
+    val kotlinxCoroutinesVersion = "1.6.4"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.3.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // Dependency Injection
     val koinVersion = "3.2.0"
@@ -60,7 +60,7 @@ dependencies {
 
     // Cron Dependencies
     implementation("org.quartz-scheduler:quartz:2.3.2")
-    implementation("com.cronutils:cron-utils:9.1.6")
+    implementation("com.cronutils:cron-utils:9.1.8")
 
     // JSON Dependencies
     implementation("com.google.code.gson:gson:2.9.0")
@@ -73,11 +73,11 @@ dependencies {
     // Logging Dependencies
     implementation("io.github.microutils:kotlin-logging:2.1.23")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
-    val log4jVersion = "2.17.2"
+    val log4jVersion = "2.18.0"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.1.0") {
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.2.0") {
         exclude("org.apache.logging.log4j")
     }
 
@@ -87,12 +87,13 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.postgresql:postgresql:42.3.6")
+    implementation("org.postgresql:postgresql:42.4.0")
     implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")
     implementation("com.zaxxer:HikariCP:5.0.1")
 
     // Test Dependencies
-    val junitVersion = "5.8.2"
+    val junitVersion = "5.9.0"
+    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
@@ -100,7 +101,7 @@ dependencies {
     testImplementation("io.insert-koin:koin-test:$koinVersion")
     testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 
-    val kotestVersion = "5.3.0"
+    val kotestVersion = "5.4.1"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
@@ -109,14 +110,14 @@ dependencies {
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
 
-    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("io.mockk:mockk:1.12.5")
 
-    val testContainersVersion = "1.17.2"
+    val testContainersVersion = "1.17.3"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 
-    testImplementation("com.tngtech.archunit:archunit-junit5:0.23.1")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.0.0-rc1")
 }
 
 application {
@@ -195,7 +196,7 @@ jacoco {
 
 ktlint {
 //    ignoreFailures.set(true)
-    version.set("0.45.2")
+    version.set("0.46.1")
     enableExperimentalRules.set(true)
     reporters {
         reporter(PLAIN)
