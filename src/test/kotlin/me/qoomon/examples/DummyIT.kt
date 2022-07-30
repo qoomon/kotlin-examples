@@ -7,6 +7,5 @@ class DummyIT {
 
     @Test
     fun success() {
-        fail { "boom" }
     }
 }

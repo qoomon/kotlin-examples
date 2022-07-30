@@ -1,4 +1,4 @@
-package me.qoomon.examples
+package me.qoomon
 
 import com.tngtech.archunit.core.domain.JavaClasses
 import com.tngtech.archunit.junit.AnalyzeClasses
