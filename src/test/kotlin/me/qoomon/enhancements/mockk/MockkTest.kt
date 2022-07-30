@@ -1,65 +1,67 @@
 package me.qoomon.enhancements.mockk
 
+import io.kotest.matchers.types.shouldBeTypeOf
+import io.ktor.util.reflect.*
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
+import io.mockk.spyk
 import org.junit.jupiter.api.Test
+import strikt.api.Assertion
 import strikt.api.expectThat
-import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
+import kotlin.test.assertEquals
 
 class MockkTest {
 
     @Test
-    fun `any matcher for value class`() {
-        // given
-        val mock = mockk<ValueServiceDummy>(relaxed = true)
-        val givenResult = 1
-        every { mock.doSomething(anyValue()) } returns givenResult
+    fun `verifyAllPropertyGetters - success`() {
+        val dummy = spyk(Dummy(foo = "123", bar = 73))
 
-        // when
-        val result = mock.doSomething(ValueDummy("moin"))
+        dummy.foo
+        dummy.bar
 
-        // then
-        expectThat(result).isEqualTo(givenResult)
+        verifyAllPropertyGetters(dummy)
     }
 
     @Test
-    fun `slot for value class`() {
-        // given
-        val mock = mockk<ValueServiceDummy>(relaxed = true)
-        val slot = slot<ValueDummy>()
-        val givenResult = 1
-        every { mock.doSomething(captureValue(slot)) } returns givenResult
+    fun `verifyAllPropertyGetters - success with excluded property`() {
+        val dummy = spyk(Dummy(foo = "123", bar = 73))
 
-        val givenParameter = ValueDummy("s")
+        dummy.bar
 
-        // when
-        val result = mock.doSomething(givenParameter)
-
-        // then
-        expectThat(result).isEqualTo(givenResult)
-        expectThat(slot.captured).isEqualTo(givenParameter)
+        verifyAllPropertyGetters(dummy, except = arrayOf(Dummy::foo))
     }
 
     @Test
-    fun `value class as return value`() {
-        // given
-        val mock = mockk<ValueServiceDummy>(relaxed = true)
-        val givenResult = ValueDummy("moin")
-        every { mock.getSomething() } returns givenResult
+    fun `verifyAllPropertyGetters - failure`() {
+        val dummy = spyk(Dummy(foo = "123", bar = 73))
 
-        // when
-        val result = mock.getSomething()
+        dummy.foo
 
-        // then
-        expectThat(result).isEqualTo(givenResult)
+        val result = kotlin.runCatching { verifyAllPropertyGetters(dummy) }
+
+        expectThat(result).isFailure().instanceOf(AssertionError::class)
     }
+
+    @Test
+    fun `result value`() {
+        val givenValue = Result.success(1)
+        val service = mockk<DummyService> {
+            every { doSomething() } returns givenValue
+        }
+
+        val result = service.doSomething()
+
+        assertEquals(givenValue, result)
+    }
+
+    data class Dummy(val foo: String, val bar: Int)
+
+    private interface DummyService {
+        fun doSomething() : Result<Int>
+    }
+
+
 }
 
-@JvmInline
-value class ValueDummy(val value: String)
 
-interface ValueServiceDummy {
-    fun doSomething(value: ValueDummy): Int
-    fun getSomething(): ValueDummy
-}

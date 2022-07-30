@@ -1,7 +1,7 @@
 package me.qoomon.examples
 
 import io.mockk.spyk
-import me.qoomon.enhancements.mockk.verifyGetForAllMemberProperties
+import me.qoomon.enhancements.mockk.verifyAllPropertyGetters
 import org.junit.jupiter.api.Test
 
 internal class ObjectMappingTest {
@@ -12,7 +12,7 @@ internal class ObjectMappingTest {
 
         dummy.toDTO()
 
-        verifyGetForAllMemberProperties(dummy, except = arrayOf(Dummy::bar))
+        verifyAllPropertyGetters(dummy, except = arrayOf(Dummy::bar))
     }
 }
 
