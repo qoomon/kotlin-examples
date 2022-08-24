@@ -1,16 +1,13 @@
 package me.qoomon.examples
 
-import io.mockk.confirmVerified
-import io.mockk.every
-import io.mockk.junit5.MockKExtension
-import io.mockk.mockk
-import io.mockk.slot
+import io.mockk.*
+import org.junit.Ignore
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import kotlin.time.Duration.Companion.minutes
+import kotlin.test.assertEquals
 
-@MockKExtension.ConfirmVerification
+// @MockKExtension.ConfirmVerification
 class MockkTest {
 
     data class Foo(val value: String)
@@ -83,14 +80,13 @@ class MockkTest {
     }
 
     @Test
+    @Ignore("not supported yet")
     fun `mock extension blocks`() {
         // Given
-        val dummy = mockk<ServiceDummy>()
-
-        dummy.apply {
-            every { transaction(any<ServiceDummy.() -> Any>()) } answers {
-                val block = arg<ServiceDummy.() -> Any>(0)
-                this@apply.block()
+        val dummy = mockk<ServiceDummy> {
+            every { transaction(any<ServiceDummy.() -> String>()) } answers {
+                val block = arg<ServiceDummy.() -> String>(0)
+                this@mockk.block()
             }
             every { getSomething() } returns ValueDummy("mock data")
         }
@@ -102,7 +98,26 @@ class MockkTest {
 
         // Then
         expectThat(data).isEqualTo(ValueDummy("mock data"))
+
+        verify { dummy.transaction(any()) }
+        verify { dummy.getSomething() }
         confirmVerified()
+    }
+
+    @Test
+    fun `mock extension blocks simple`() {
+        val givenValue = 42
+        val dummy = mockk<ServiceDummy> {
+            every { execute(any()) } answers {
+                val block = arg<ServiceDummy.() -> Int>(0)
+                this@mockk.block()
+            }
+        }
+
+        val result = dummy.execute { givenValue }
+
+        assertEquals(givenValue, result)
+        verify { dummy.execute(any()) }
     }
 
     @Test
@@ -120,31 +135,33 @@ class MockkTest {
     }
 
     interface ResultServiceDummy {
-        fun getSomething(): Any
+        fun getAny(): Any
+        fun getResult(): Result<Int>
     }
 
     @Test
-    fun `result value`() {
-        val value = Result.success(ValueDummy("something"))
+    fun `return Result for function with Result return type`() {
+        val givenValue = Result.success(42)
         val service = mockk<ResultServiceDummy> {
-            every { getSomething() } returns value
+            every { getResult() } returns givenValue
         }
 
-        val result: Any = service.getSomething()
+        val result = service.getResult()
 
-        expectThat(result) isEqualTo value
+        assertEquals(givenValue, result)
     }
 
     @Test
-    fun `duration value`() {
-        val value = Result.success(1.minutes)
+    @Ignore("not supported yet")
+    fun `return Result for function with Any return type`() {
+        val givenValue = Result.success(42)
         val service = mockk<ResultServiceDummy> {
-            every { getSomething() } returns value
+            every { getAny() } returns givenValue
         }
 
-        val result = service.getSomething()
+        val result = service.getAny()
 
-        expectThat(result) isEqualTo value
+        assertEquals(givenValue, result)
     }
 
     @JvmInline
@@ -152,6 +169,8 @@ class MockkTest {
 
     interface ServiceDummy {
         fun <T> transaction(block: ServiceDummy.() -> T) = block()
+        fun execute(block: ServiceDummy.() -> Int) = block()
+
         fun getSomething(): ValueDummy
         fun doSomething(value: ValueDummy): ValueDummy
     }

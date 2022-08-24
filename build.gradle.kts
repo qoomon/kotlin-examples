@@ -6,8 +6,8 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     application
-    kotlin("jvm") version "1.7.20-Beta"; java
-    kotlin("plugin.serialization") version "1.7.20-Beta"
+    kotlin("jvm") version "1.7.10"; java
+    kotlin("plugin.serialization") version "1.7.10"
 
     id("com.dorongold.task-tree") version "2.1.0"
     id("com.github.ben-manes.versions") version "0.42.0"
@@ -41,7 +41,10 @@ kotlin {
     }
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 
 dependencies {
     implementation(kotlin("reflect"))
@@ -49,7 +52,7 @@ dependencies {
 
     val kotlinxCoroutinesVersion = "1.6.4"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // Dependency Injection
@@ -110,7 +113,7 @@ dependencies {
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
 
-    testImplementation("io.mockk:mockk:1.12.5")
+    testImplementation("io.mockk:mockk:1.12.8-SNAPSHOT")
 
     val testContainersVersion = "1.17.3"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")

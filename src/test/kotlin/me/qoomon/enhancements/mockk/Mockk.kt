@@ -8,16 +8,15 @@ import kotlin.reflect.jvm.javaField
 
 fun <T : Any> verifyAllPropertyGetters(obj: T, vararg except: KProperty1<T, *>) {
     verify {
-        obj::class.memberProperties.forEach {
-            if (it in except) return@forEach
-            obj getProperty it.name
-        }
+        obj::class.memberProperties
+            .filter { it !in except }
+            .forEach { obj.getProperty(it.name) }
     }
 }
 
 fun main() {
     for (property in Result.success(1)::class.java.declaredFields) {
-        println("${property.name}")
+        println(property.name)
     }
 
     Result::class.memberProperties.filter { it.javaField != null }

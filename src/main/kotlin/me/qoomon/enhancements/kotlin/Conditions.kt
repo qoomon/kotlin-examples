@@ -8,4 +8,3 @@ inline infix fun (() -> Boolean).xor(crossinline that: () -> Boolean): () -> Boo
 
 fun <T> T.satisfyAny(vararg conditions: (T) -> Boolean) = conditions.any { it(this) }
 fun <T> T.satisfyAll(vararg conditions: (T) -> Boolean) = conditions.all { it(this) }
-
