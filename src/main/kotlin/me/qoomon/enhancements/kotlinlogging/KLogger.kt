@@ -9,207 +9,290 @@ import org.slf4j.Marker
 /**
  * Lazy add a log message if isTraceEnabled is true
  */
-fun KLogger.trace(msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.trace(
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { trace(msg) }
+        withLoggingContext(loggingContext) { trace(msg) }
     }
 }
 
 /**
  * Lazy add a log message if isDebugEnabled is true
  */
-fun KLogger.debug(msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.debug(
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isDebugEnabled) {
-        withLoggingContext(context.build()) { debug(msg) }
+        withLoggingContext(loggingContext) { debug(msg) }
     }
 }
 
 /**
  * Lazy add a log message if isInfoEnabled is true
  */
-fun KLogger.info(msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.info(
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isInfoEnabled) {
-        withLoggingContext(context.build()) { info(msg) }
+        withLoggingContext(loggingContext) { info(msg) }
     }
 }
 
 /**
  * Lazy add a log message if isWarnEnabled is true
  */
-fun KLogger.warn(msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.warn(
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isWarnEnabled) {
-        withLoggingContext(context.build()) { warn(msg) }
+        withLoggingContext(loggingContext) { warn(msg) }
     }
 }
 
 /**
  * Lazy add a log message if isErrorEnabled is true
  */
-fun KLogger.error(msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.error(
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isErrorEnabled) {
-        withLoggingContext(context.build()) { error(msg) }
+        withLoggingContext(loggingContext) { error(msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isTraceEnabled is true
  */
-fun KLogger.trace(t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.trace(
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { trace(t, msg) }
+        withLoggingContext(loggingContext) { trace(t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isDebugEnabled is true
  */
-fun KLogger.debug(t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.debug(
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isDebugEnabled) {
-        withLoggingContext(context.build()) { debug(t, msg) }
+        withLoggingContext(loggingContext) { debug(t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isInfoEnabled is true
  */
-fun KLogger.info(t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.info(
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isInfoEnabled) {
-        withLoggingContext(context.build()) { info(t, msg) }
+        withLoggingContext(loggingContext) { info(t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isWarnEnabled is true
  */
-fun KLogger.warn(t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.warn(
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isWarnEnabled) {
-        withLoggingContext(context.build()) { warn(t, msg) }
+        withLoggingContext(loggingContext) { warn(t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isErrorEnabled is true
  */
-fun KLogger.error(t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.error(
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isErrorEnabled) {
-        withLoggingContext(context.build()) { error(t, msg) }
+        withLoggingContext(loggingContext) { error(t, msg) }
     }
 }
 
 /**
  * Lazy add a log message if isTraceEnabled is true
  */
-fun KLogger.trace(marker: Marker?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.trace(
+    marker: Marker?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { trace(marker, msg) }
+        withLoggingContext(loggingContext) { trace(marker, msg) }
     }
 }
 
 /**
  * Lazy add a log message if isDebugEnabled is true
  */
-fun KLogger.debug(marker: Marker?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.debug(
+    marker: Marker?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isDebugEnabled) {
-        withLoggingContext(context.build()) { debug(marker, msg) }
+        withLoggingContext(loggingContext) { debug(marker, msg) }
     }
 }
 
 /**
  * Lazy add a log message if isInfoEnabled is true
  */
-fun KLogger.info(marker: Marker?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.info(
+    marker: Marker?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isInfoEnabled) {
-        withLoggingContext(context.build()) { info(marker, msg) }
+        withLoggingContext(loggingContext) { info(marker, msg) }
     }
 }
 
 /**
  * Lazy add a log message if isWarnEnabled is true
  */
-fun KLogger.warn(marker: Marker?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.warn(
+    marker: Marker?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isWarnEnabled) {
-        withLoggingContext(context.build()) { warn(marker, msg) }
+        withLoggingContext(loggingContext) { warn(marker, msg) }
     }
 }
 
 /**
  * Lazy add a log message if isErrorEnabled is true
  */
-fun KLogger.error(marker: Marker?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.error(
+    marker: Marker?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isErrorEnabled) {
-        withLoggingContext(context.build()) { error(marker, msg) }
+        withLoggingContext(loggingContext) { error(marker, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isTraceEnabled is true
  */
-fun KLogger.trace(marker: Marker?, t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.trace(
+    marker: Marker?,
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { trace(marker, t, msg) }
+        withLoggingContext(loggingContext) { trace(marker, t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isDebugEnabled is true
  */
-fun KLogger.debug(marker: Marker?, t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.debug(
+    marker: Marker?,
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isDebugEnabled) {
-        withLoggingContext(context.build()) { debug(marker, t, msg) }
+        withLoggingContext(loggingContext) { debug(marker, t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isInfoEnabled is true
  */
-fun KLogger.info(marker: Marker?, t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.info(
+    marker: Marker?,
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isInfoEnabled) {
-        withLoggingContext(context.build()) { info(marker, t, msg) }
+        withLoggingContext(loggingContext) { info(marker, t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isWarnEnabled is true
  */
-fun KLogger.warn(marker: Marker?, t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.warn(
+    marker: Marker?,
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isWarnEnabled) {
-        withLoggingContext(context.build()) { warn(marker, t, msg) }
+        withLoggingContext(loggingContext) { warn(marker, t, msg) }
     }
 }
 
 /**
  * Lazy add a log message with throwable payload if isErrorEnabled is true
  */
-fun KLogger.error(marker: Marker?, t: Throwable?, msg: () -> Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.error(
+    marker: Marker?,
+    t: Throwable?,
+    msg: () -> Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isErrorEnabled) {
-        withLoggingContext(context.build()) { error(marker, t, msg) }
+        withLoggingContext(loggingContext) { error(marker, t, msg) }
     }
 }
 
 /**
  * Add a log message with all the supplied parameters along with method name
  */
-fun KLogger.entry(vararg argArray: Any?, context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.entry(
+    vararg argArray: Any?,
+    loggingContext: (LoggingContext) -> Unit
+) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { entry(argArray) }
+        withLoggingContext(loggingContext) { entry(argArray) }
     }
 }
 
 /**
  * Add log message indicating exit of a method
  */
-fun KLogger.exit(context: (MutableMap<String, String?>) -> Unit) {
+fun KLogger.exit(loggingContext: (LoggingContext) -> Unit) {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { exit() }
+        withLoggingContext(loggingContext) { exit() }
     }
 }
 
 /**
  * Add a log message with the return value of a method
  */
-fun <T> KLogger.exit(result: T, context: (MutableMap<String, String?>) -> Unit): T where T : Any? {
+fun <T> KLogger.exit(result: T, loggingContext: (LoggingContext) -> Unit): T where T : Any? {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { exit(result) }
+        withLoggingContext(loggingContext) { exit(result) }
     }
     return result
 }
@@ -217,23 +300,25 @@ fun <T> KLogger.exit(result: T, context: (MutableMap<String, String?>) -> Unit):
 /**
  * Add a log message indicating an exception will be thrown along with the stack trace.
  */
-fun <T> KLogger.throwing(throwable: T, context: (MutableMap<String, String?>) -> Unit) where T : Throwable {
+fun <T> KLogger.throwing(throwable: T, loggingContext: (LoggingContext) -> Unit) where T : Throwable {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { throwing(throwable) }
+        withLoggingContext(loggingContext) { throwing(throwable) }
     }
 }
 
 /**
  * Add a log message indicating an exception is caught along with the stack trace.
  */
-fun <T> KLogger.catching(throwable: T, context: (MutableMap<String, String?>) -> Unit) where T : Throwable {
+fun <T> KLogger.catching(throwable: T, loggingContext: (LoggingContext) -> Unit) where T : Throwable {
     if (isTraceEnabled) {
-        withLoggingContext(context.build()) { catching(throwable) }
+        withLoggingContext(loggingContext) { catching(throwable) }
     }
 }
 
-private fun ((MutableMap<String, String?>) -> Unit).build(): MutableMap<String, String?> {
-    val context = mutableMapOf<String, String?>()
-    this(context)
-    return context
-}
+typealias LoggingContext = MutableMap<String, String?>
+
+fun <T> withLoggingContext(
+    loggingContext: (LoggingContext) -> Unit,
+    restorePrevious: Boolean = true,
+    body: () -> T
+) = withLoggingContext(mutableMapOf<String, String?>().apply { loggingContext(this) }, restorePrevious, body)

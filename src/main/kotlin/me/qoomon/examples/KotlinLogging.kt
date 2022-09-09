@@ -3,6 +3,7 @@
 package me.qoomon.examples
 
 import me.qoomon.enhancements.kotlinlogging.info
+import me.qoomon.enhancements.kotlinlogging.withLoggingContext
 import mu.KLogger
 import mu.KotlinLogging
 import mu.withLoggingContext
@@ -17,15 +18,17 @@ class KotlinLoggingTestClass(private val log: KLogger = me.qoomon.examples.log) 
 }
 
 fun main() {
+    log.info { "moin moin" }
 
-    log.info { "log.info" }
-
-    log.info({ "log.info with fields" }, {
+    log.info({ "moin moin - with LoggingContext" }) {
         it["accountId"] = "123456789"
         it["basketId"] = "123456789"
-    })
+    }
 
-    withLoggingContext("accountId" to "123456789") {
-        log.info { "withLoggingContext > log.info" }
+    withLoggingContext({
+        it["accountId"] = "123456789"
+        it["basketId"] = "123456789"
+    }) {
+        log.info { "moin moin - withLoggingContext()" }
     }
 }
