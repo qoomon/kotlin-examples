@@ -4,6 +4,8 @@ import mu.KLogger
 import mu.withLoggingContext
 import org.slf4j.Marker
 
+typealias LoggingContext = MutableMap<String, String?>
+
 // --- KLogger Lazy Context Extensions ---------------------------------------------------------------------------------
 
 /**
@@ -315,9 +317,7 @@ fun <T> KLogger.catching(throwable: T, loggingContext: (LoggingContext) -> Unit)
     }
 }
 
-typealias LoggingContext = MutableMap<String, String?>
-
-fun <T> withLoggingContext(
+inline fun <T> withLoggingContext(
     loggingContext: (LoggingContext) -> Unit,
     restorePrevious: Boolean = true,
     body: () -> T
