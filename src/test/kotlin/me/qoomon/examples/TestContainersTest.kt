@@ -13,7 +13,7 @@ class TestContainersTest {
     companion object {
         @Container
         val container = GenericContainer(DockerImageName.parse("alpine")).apply {
-                withCommand("nc 127.0.0.1 2323 -lk")
+            withCommand("nc 127.0.0.1 2323 -lk")
         }
     }
 

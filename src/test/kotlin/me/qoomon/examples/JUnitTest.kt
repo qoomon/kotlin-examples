@@ -12,7 +12,7 @@ class JUnitTest {
         data class Case(val name: String)
         listOf(
             Case("John"),
-            Case("Peter")
+            Case("Peter"),
         )
     }) {
         // given
@@ -43,8 +43,8 @@ class JUnitTest {
             data class Case(val name: String)
             listOf(
                 Case("John"),
-                Case("Peter")
+                Case("Peter"),
             )
-        }
+        },
     )
 }

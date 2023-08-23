@@ -59,7 +59,7 @@ fun main() {
             "b" to lazy { 2.also { println("init b") } },
             "c" to lazy { 3.also { println("init c") } },
             "d" to lazy { 4.also { println("init d") } },
-        )
+        ),
     )
 
     println(lazyMap["c"])

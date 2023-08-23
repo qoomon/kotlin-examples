@@ -18,7 +18,7 @@ class SequenceTest {
         val apiResponses = (0..givenPageCount).map { pageIndex ->
             Response(
                 "body-$pageIndex",
-                if (pageIndex + 1 < givenPageCount) "nextToken-${pageIndex + 1}" else null
+                if (pageIndex + 1 < givenPageCount) "nextToken-${pageIndex + 1}" else null,
             )
         }.iterator()
 
@@ -53,7 +53,7 @@ class SequenceTest {
         val apiResponses = (0..givenPageCount).map { pageIndex ->
             Response(
                 "body-$pageIndex",
-                if (pageIndex + 1 < givenPageCount) "nextToken-${pageIndex + 1}" else null
+                if (pageIndex + 1 < givenPageCount) "nextToken-${pageIndex + 1}" else null,
             )
         }.iterator()
 
@@ -62,7 +62,9 @@ class SequenceTest {
         val pages = generateSequence(seedResponse) { lastResponse ->
             if (lastResponse.nextToken != null) {
                 apiResponses.next()
-            } else null
+            } else {
+                null
+            }
         }.toList()
 
         // Then

@@ -28,8 +28,8 @@ fun haveValidPackageInternalAnnotations(
                     SimpleConditionEvent(
                         javaClass,
                         javaClass.isInternal(),
-                        "${javaClass.description} in ${javaClass.sourceCodeLocation}"
-                    )
+                        "${javaClass.description} in ${javaClass.sourceCodeLocation}",
+                    ),
                 )
             }
             javaClass.members.forEach {
@@ -38,8 +38,8 @@ fun haveValidPackageInternalAnnotations(
                         SimpleConditionEvent(
                             it,
                             it.isInternal(),
-                            "${it.description} in ${it.sourceCodeLocation}"
-                        )
+                            "${it.description} in ${it.sourceCodeLocation}",
+                        ),
                     )
                 }
             }
@@ -71,7 +71,7 @@ fun notAccessPackageInternalElementsFromOutside(
             javaClass.directDependenciesFromSelf
                 .filter {
                     it.targetClass.isAnnotatedWith(packageInternalAnnotation.java) ||
-                    it.targetClass.anyParentIsAnnotatedWith(packageInternalAnnotation.java)
+                        it.targetClass.anyParentIsAnnotatedWith(packageInternalAnnotation.java)
                 }
                 .forEach {
                     val targetIsAnnotated = it.targetClass.isAnnotatedWith(packageInternalAnnotation.java)
@@ -83,10 +83,13 @@ fun notAccessPackageInternalElementsFromOutside(
                                 it,
                                 isPackageInternalAccess,
                                 it.description.let { description ->
-                                    if (targetIsAnnotated) description
-                                    else "$description - a parent class is package internal"
-                                }
-                            )
+                                    if (targetIsAnnotated) {
+                                        description
+                                    } else {
+                                        "$description - a parent class is package internal"
+                                    }
+                                },
+                            ),
                         )
                     }
                 }
@@ -117,10 +120,13 @@ fun notAccessPackageInternalElementsFromOutside(
                                 access,
                                 isConditionSatisfied,
                                 access.description.let { description ->
-                                    if (targetIsAnnotated) description
-                                    else "$description - a parent definition is package internal"
-                                }
-                            )
+                                    if (targetIsAnnotated) {
+                                        description
+                                    } else {
+                                        "$description - a parent definition is package internal"
+                                    }
+                                },
+                            ),
                         )
                     }
                 }
@@ -135,8 +141,10 @@ fun beInternal(): ArchCondition<JavaClass> =
         override fun check(item: JavaClass, events: ConditionEvents) {
             events.add(
                 SimpleConditionEvent(
-                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
-                )
+                    item,
+                    item.reflect().isInternal(),
+                    "${item.description} in ${item.sourceCodeLocation}",
+                ),
             )
         }
 
@@ -152,8 +160,10 @@ fun beInternalMember(): ArchCondition<JavaMember> =
         override fun check(item: JavaMember, events: ConditionEvents) {
             events.add(
                 SimpleConditionEvent(
-                    item, item.reflect().isInternal(), "${item.description} in ${item.sourceCodeLocation}"
-                )
+                    item,
+                    item.reflect().isInternal(),
+                    "${item.description} in ${item.sourceCodeLocation}",
+                ),
             )
         }
 
@@ -191,7 +201,7 @@ private fun JavaMethod.anyParentIsAnnotatedWith(annotationType: Class<out Annota
             parentClass.tryGetMethod(name, *parameters).orElse(null)
                 ?.isAnnotatedWith(annotationType) ?: false
         } ||
-        backingField()?.anyParentIsAnnotatedWith(annotationType) ?: false
+            backingField()?.anyParentIsAnnotatedWith(annotationType) ?: false
     }
 
 private fun JavaClass.isKotlinClass() = isMetaAnnotatedWith("kotlin.Metadata")

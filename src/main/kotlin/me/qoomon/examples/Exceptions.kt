@@ -16,6 +16,6 @@ fun main() {
             throw Exception("Boom!")
         } catch (exception: Exception) {
             "Fallback"
-        }
+        },
     )
 }

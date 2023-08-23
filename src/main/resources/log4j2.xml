@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <Console name="console">
-            <PatternLayout>
-                <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{1.} - %m - %X%n</pattern>
-            </PatternLayout>
+        <Console name="console" target="SYSTEM_OUT">
+            <!-- https://logging.apache.org/log4j/2.x/manual/layouts.html#PatternLayout -->
+            <PatternLayout pattern="%d{DEFAULT} %highlight{[%-5level]} %thread %cyan{%logger{1.}} %message %mdc%n%highlight{%exception}" />
+        </Console>
+        <Console name="console_json" target="SYSTEM_OUT">
+            <!-- https://logging.apache.org/log4j/2.x/manual/json-template-layout.html#event-templates -->
+            <JsonTemplateLayout eventTemplateUri="classpath:JsonLayout.json"/>
         </Console>
     </Appenders>
     <Loggers>
         <Root level="info">
             <AppenderRef ref="console"/>
+            <!-- <AppenderRef ref="console_json"/>-->
         </Root>
     </Loggers>
 </Configuration>

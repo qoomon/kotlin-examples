@@ -43,7 +43,7 @@ import org.junit.jupiter.api.DynamicTest.dynamicTest
 fun <T> parameterizedTest(
     cases: () -> Collection<T>,
     displayName: T.(T) -> String = { toString() },
-    test: T.(T) -> Unit
+    test: T.(T) -> Unit,
 ): List<DynamicTest> = cases().map { case ->
     dynamicTest(case.displayName(case)) {
         case.test(case)

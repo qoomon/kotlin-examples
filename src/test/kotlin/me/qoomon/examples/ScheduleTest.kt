@@ -51,14 +51,14 @@ class ScheduleTest {
             listOf(
                 Case(
                     Given("0 * * * * ?", now, now.minusMinutes(10)),
-                    Expected(true)
+                    Expected(true),
                 ),
                 Case(
                     Given("0 0 * * * ?", now, now.minusMinutes(10)),
-                    Expected(false)
-                )
+                    Expected(false),
+                ),
             )
-        }
+        },
     )
 
     @TestFactory
@@ -92,14 +92,14 @@ class ScheduleTest {
             listOf(
                 Case(
                     Given("0 * * * * ?", now, now.minusMinutes(10)),
-                    Expected(true)
+                    Expected(true),
                 ),
                 Case(
                     Given("0 0 * * * ?", now, now.minusMinutes(10)),
-                    Expected(false)
-                )
+                    Expected(false),
+                ),
             )
-        }
+        },
     )
 
     @TestFactory
@@ -134,13 +134,13 @@ class ScheduleTest {
             listOf(
                 TestCase(
                     Given("0 * * * * ?", now, now.minusMinutes(10)),
-                    Expected(true)
+                    Expected(true),
                 ),
                 TestCase(
                     Given("0 0 * * * ?", now, now.minusSeconds(10)),
-                    Expected(false)
-                )
+                    Expected(false),
+                ),
             )
-        }
+        },
     )
 }

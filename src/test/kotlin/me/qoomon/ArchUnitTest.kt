@@ -7,7 +7,6 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import com.tngtech.archunit.library.DependencyRules.dependOnUpperPackages
 import com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices
-import me.qoomon._Package
 import me.qoomon.enhancements.archunit.haveValidPackageInternalAnnotations
 import me.qoomon.enhancements.archunit.notAccessPackageInternalElementsFromOutside
 import me.qoomon.enhancements.kotlin.PackageInternal

@@ -1,7 +1,7 @@
 package me.qoomon.examples
 
-import mu.KLogger
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.exposed.sql.Database
 import org.postgresql.ds.PGSimpleDataSource
 import java.net.URL
@@ -13,7 +13,7 @@ import kotlin.time.Duration
 private val LOG = KotlinLogging.logger {}
 
 open class AppContext(
-    private val log: KLogger = LOG
+    private val log: KLogger = LOG,
 ) {
 
     open val checkQueueUrl by lazy { requireNotNull(System.getenv("CHECK_QUEUE_URL")).let { URL(it) } }

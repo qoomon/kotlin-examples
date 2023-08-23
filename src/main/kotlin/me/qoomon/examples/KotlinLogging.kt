@@ -2,11 +2,10 @@
 
 package me.qoomon.examples
 
+import io.github.oshai.kotlinlogging.KLogger
+import io.github.oshai.kotlinlogging.KotlinLogging
 import me.qoomon.enhancements.kotlinlogging.info
 import me.qoomon.enhancements.kotlinlogging.withLoggingContext
-import mu.KLogger
-import mu.KotlinLogging
-import mu.withLoggingContext
 
 private val log = KotlinLogging.logger {}
 

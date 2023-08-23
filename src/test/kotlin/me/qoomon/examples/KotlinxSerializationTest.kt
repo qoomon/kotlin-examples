@@ -47,7 +47,7 @@ class KotlinxSerializationTest {
         fun `serialize should serialize list with multiple element as json array`() {
             // Given
             val jsonObject = DummyJsonObject(
-                listOf("foo", "bar")
+                listOf("foo", "bar"),
             )
 
             // When
@@ -61,7 +61,7 @@ class KotlinxSerializationTest {
         fun `serialize should serialize list with one element as json element`() {
             // Given
             val jsonObject = DummyJsonObject(
-                listOf("foo")
+                listOf("foo"),
             )
 
             // When
@@ -76,5 +76,5 @@ class KotlinxSerializationTest {
 @Serializable
 internal data class DummyJsonObject(
     @Serializable(with = SingleElementListSerializer::class)
-    val singleObjectList: List<String>
+    val singleObjectList: List<String>,
 )

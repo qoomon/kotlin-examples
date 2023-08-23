@@ -18,9 +18,13 @@ fun <T> Assertion.Builder<T>.satisfies(description: String, condition: (T) -> Bo
  */
 fun Assertion.Builder<String>.isAPalindrome(): Assertion.Builder<String> {
     return assert("is a palindrome") { value ->
-        if (value == value.reversed()) pass() else fail(
-            description = "is not a palindrome",
-            actual = value
-        )
+        if (value == value.reversed()) {
+            pass()
+        } else {
+            fail(
+                description = "is not a palindrome",
+                actual = value,
+            )
+        }
     }
 }

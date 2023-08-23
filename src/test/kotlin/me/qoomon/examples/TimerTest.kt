@@ -10,10 +10,10 @@ import kotlin.time.Duration.Companion.seconds
 class TimerTest {
 
     @Test
-    fun isFailure() {
+    fun timer() {
         // Given
         val period = 2.seconds
-        val duration = 4.seconds
+        val duration = 3.seconds
 
         // When
         var count = 0L
@@ -26,7 +26,7 @@ class TimerTest {
         }
 
         // Then
-        val expectedCount = duration.inWholeSeconds / period.inWholeSeconds
+        val expectedCount = 1 + duration.inWholeSeconds / period.inWholeSeconds
         expectThat(count).isEqualTo(expectedCount)
     }
 }

@@ -17,7 +17,7 @@ fun <T> retry(
     maxRetries: Int,
     delay: Duration = Duration.ZERO,
     catch: Set<KClass<out Throwable>> = setOf(Throwable::class),
-    block: (Int) -> T
+    block: (Int) -> T,
 ): T {
     val suppressedExceptions = mutableListOf<Throwable>()
     for (i in 0 until maxRetries) {
@@ -27,7 +27,9 @@ fun <T> retry(
             if (catch.any { it.isInstance(exception) }) {
                 suppressedExceptions.add(exception)
                 Thread.sleep(delay.inWholeMilliseconds)
-            } else throw exception
+            } else {
+                throw exception
+            }
         }
     }
     suppressedExceptions.reverse()
@@ -41,12 +43,12 @@ fun <T> retry(
 
 fun <T> tryAll(
     vararg attempts: () -> T,
-    catch: Set<KClass<out Throwable>> = setOf(Throwable::class)
+    catch: Set<KClass<out Throwable>> = setOf(Throwable::class),
 ): T = tryAll(attempts.toList(), catch)
 
 fun <T> tryAll(
     attempts: List<() -> T>,
-    catch: Set<KClass<out Throwable>> = setOf(Throwable::class)
+    catch: Set<KClass<out Throwable>> = setOf(Throwable::class),
 ): T {
     val suppressedExceptions = mutableListOf<Throwable>()
     for (attempt in attempts) {
@@ -55,7 +57,9 @@ fun <T> tryAll(
         } catch (exception: Throwable) {
             if (catch.any { it.isInstance(exception) }) {
                 suppressedExceptions.add(exception)
-            } else throw exception
+            } else {
+                throw exception
+            }
         }
     }
     suppressedExceptions.reverse()

@@ -1,6 +1,6 @@
 package me.qoomon.enhancements.mockk
 
-import io.ktor.util.reflect.*
+import io.ktor.util.reflect.instanceOf
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk

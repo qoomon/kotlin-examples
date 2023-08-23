@@ -2,7 +2,11 @@ package me.qoomon.examples
 
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.*
+import strikt.assertions.isA
+import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
+import strikt.assertions.isSuccess
+import strikt.assertions.message
 
 class StriktTest {
 

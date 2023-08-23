@@ -33,7 +33,7 @@ class SingleElementListSerializer<T : Any>(
     override fun deserialize(decoder: Decoder): List<T> {
         decoder as? JsonDecoder ?: throw IllegalStateException(
             "This serializer can be used only with Json format." +
-                "Expected Decoder to be JsonInput, got ${this::class}"
+                "Expected Decoder to be JsonInput, got ${this::class}",
         )
         return when (val jsonElement = decoder.decodeSerializableValue(JsonElement.serializer())) {
             is JsonArray -> decoder.json.decodeFromJsonElement(dataListSerializer, jsonElement)
@@ -61,8 +61,6 @@ class InstantSerializer : KSerializer<Instant> {
         encoder.encodeString(value.toString())
     }
 }
-
-
 
 @JvmInline
 @Serializable

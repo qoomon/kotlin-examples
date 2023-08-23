@@ -15,4 +15,3 @@ internal class ObjectMappingTest {
         verifyAllPropertyGetters(dummy, except = arrayOf(Dummy::bar))
     }
 }
-

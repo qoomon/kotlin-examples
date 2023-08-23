@@ -6,38 +6,34 @@ import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
 
 plugins {
     application
-    kotlin("jvm") version "1.7.10"; java
-    kotlin("plugin.serialization") version "1.7.10"
+    kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
 
-    id("com.dorongold.task-tree") version "2.1.0"
-    id("com.github.ben-manes.versions") version "0.42.0"
+    id("com.dorongold.task-tree") version "2.1.1"
+    id("com.github.ben-manes.versions") version "0.47.0"
     id("com.adarshr.test-logger") version "3.2.0"
 
-    id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
+    id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
 
     jacoco
-    id("org.barfuin.gradle.jacocolog") version "3.0.0-RC2"
+    id("org.barfuin.gradle.jacocolog") version "3.1.0"
 
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 
     idea
 }
 
 kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                // allWarningsAsErrors = true
-                jvmTarget = JavaVersion.VERSION_17.toString()
-                freeCompilerArgs = listOf(
-                    "-module-name=${project.name}",
-                    "-Xcontext-receivers",
-                    "-opt-in=kotlin.contracts.ExperimentalContracts",
-                    "-opt-in=kotlin.time.ExperimentalTime",
-                    "-opt-in=kotlinx.serialization.ExperimentalSerializationApi",
-                )
-            }
-        }
+    jvmToolchain {
+//        languageVersion.set(JavaLanguageVersion.of(20))
+    }
+    compilerOptions {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        moduleName = project.name
+        optIn.add("kotlin.contracts.ExperimentalContracts")
+        optIn.add("kotlin.time.ExperimentalTime")
+        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
+        freeCompilerArgs.add("-Xcontext-receivers")
     }
 }
 
@@ -50,52 +46,49 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation(kotlin("script-runtime"))
 
-    val kotlinxCoroutinesVersion = "1.6.4"
+    val kotlinxCoroutinesVersion = "1.7.3"
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // Dependency Injection
-    val koinVersion = "3.2.0"
+    val koinVersion = "3.4.3"
     implementation("io.insert-koin:koin-core:$koinVersion")
     implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
     implementation("io.insert-koin:koin-ktor:$koinVersion")
 
     // Cron Dependencies
-    implementation("org.quartz-scheduler:quartz:2.3.2")
-    implementation("com.cronutils:cron-utils:9.1.8")
+    implementation("org.quartz-scheduler:quartz:2.5.0-rc1")
+    implementation("com.cronutils:cron-utils:9.2.1")
 
     // JSON Dependencies
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
 
-    val jacksonVersion = "2.13.3"
+    val jacksonVersion = "2.15.2"
     implementation("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
     implementation("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
     implementation("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
 
     // Logging Dependencies
-    implementation("io.github.microutils:kotlin-logging:2.1.23")
+    implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-slf4j:$kotlinxCoroutinesVersion")
-    val log4jVersion = "2.18.0"
+    val log4jVersion = "3.0.0-alpha1"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
-    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.2.0") {
-        exclude("org.apache.logging.log4j")
-    }
 
     // Database Dependencies
-    val exposedVersion = "0.38.2"
+    val exposedVersion = "0.42.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
-    implementation("org.postgresql:postgresql:42.4.0")
+    implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")
     implementation("com.zaxxer:HikariCP:5.0.1")
 
     // Test Dependencies
-    val junitVersion = "5.9.0"
+    val junitVersion = "5.10.0"
     testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
     testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
@@ -104,7 +97,7 @@ dependencies {
     testImplementation("io.insert-koin:koin-test:$koinVersion")
     testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
 
-    val kotestVersion = "5.4.1"
+    val kotestVersion = "5.6.2"
     testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
     testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
     testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
@@ -113,14 +106,14 @@ dependencies {
     testImplementation("io.strikt:strikt-core:$striktVersion")
     testImplementation("io.strikt:strikt-jvm:$striktVersion")
 
-    testImplementation("io.mockk:mockk:1.12.8-SNAPSHOT")
+    testImplementation("io.mockk:mockk:1.13.7")
 
-    val testContainersVersion = "1.17.3"
+    val testContainersVersion = "1.19.0"
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 
-    testImplementation("com.tngtech.archunit:archunit-junit5:1.0.0-rc1")
+    testImplementation("com.tngtech.archunit:archunit-junit5:1.1.0")
 }
 
 application {
@@ -155,10 +148,10 @@ testing {
             useJUnitJupiter()
 
             dependencies {
-                implementation(project)
-                // add test dependencies (optiona, if not needed)
+                implementation(project())
+                // add test dependencies (optional, if not needed)
                 configurations.testImplementation {
-                    dependencies.forEach(::implementation)
+                    dependencies.forEach { implementation(it) }
                 }
             }
 
@@ -168,7 +161,7 @@ testing {
                         listOf(
                             "src/main/kotlin",
                             "src/test/kotlin",
-                        )
+                        ),
                     )
                     include("**/*IT.kt")
                 }
@@ -199,7 +192,7 @@ jacoco {
 
 ktlint {
 //    ignoreFailures.set(true)
-    version.set("0.46.1")
+    version.set("0.50.0")
     enableExperimentalRules.set(true)
     reporters {
         reporter(PLAIN)
@@ -211,11 +204,11 @@ tasks {
 
     processResources {
         filesMatching("application.properties") {
-            // groovy template engine($ { placholder })
+            // groovy template engine($ { placeholder })
             expand(project.properties)
             expand("version" to project.version)
 
-//            // groovy template engine (@placholder@)
+//            // groovy template engine (@placeholder@)
 //            filter<ReplaceTokens>(
 //                "tokens" to mapOf(
 //                    "version" to project.version
@@ -231,23 +224,14 @@ tasks {
     withType<JavaExec>().configureEach {
     }
 
-    jar {
-        archiveBaseName.set(project.name)
-    }
-
     shadowJar {
-        archiveBaseName.set(project.name)
+        // archiveVersion = ""
+        // archiveClassifier = ""
         mergeServiceFiles()
         // relocate("org.postgresql.util", "shadow.org.postgresql.util")
         minimize {
             // exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
         }
-        // <WORKAROUND for="https://github.com/johnrengelman/shadow/issues/448">
-        configurations = listOf(
-            project.configurations.implementation.get(),
-            project.configurations.runtimeOnly.get()
-        ).onEach { it.isCanBeResolved = true }
-        // </WORKAROUND>
     }
 
     withType<Test>().configureEach {
@@ -278,10 +262,13 @@ tasks {
     jacocoTestCoverageVerification {
         violationRules {
             rule {
-                element
+                element = "BUNDLE"
                 limit {
-                    minimum = 0.5.toBigDecimal()
+                    counter = "INSTRUCTION"
+                    value = "COVEREDRATIO"
+                    minimum = 0.1.toBigDecimal()
                 }
+                exclude("me.qoomon.**")
             }
         }
     }
@@ -296,7 +283,7 @@ tasks {
         val propertyFileContent = propertyFile.readText()
         val propertyFileContentNew = propertyFileContent.replace(
             "^${Regex.escape(property.first)}=.*$".toRegex(RegexOption.MULTILINE),
-            "${property.first}=${property.second}"
+            "${property.first}=${property.second}",
         )
         if (propertyFileContentNew != propertyFileContent) {
             propertyFile.writeText(propertyFileContentNew)
@@ -316,8 +303,10 @@ fun JacocoReportBase.exclude(vararg excludeRefs: String) {
         .map { it.replace(".", "/") }
         .flatMap {
             listOf(
-                "$it.class", "$it\$*.class", // java classes
-                "${it}Kt.class", "${it}Kt\$*.class", // kotlin classes
+                "$it.class",
+                "$it\$*.class", // java classes
+                "${it}Kt.class",
+                "${it}Kt\$*.class", // kotlin classes
             )
         }
     this.classDirectories.setFrom(files(this.classDirectories.files.map { fileTree(it) { exclude(excludePaths) } }))

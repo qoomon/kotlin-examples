@@ -11,7 +11,7 @@ fun Duration.ago() = ago(now())
 fun Instant.isWithinLast(
     duration: Duration,
     from: Instant,
-    includeFuture: Boolean = true
+    includeFuture: Boolean = true,
 ): Boolean = duration.ago(from)
     .let { past -> past <= this && (includeFuture || this < from) }
 
@@ -25,7 +25,7 @@ fun Duration.ahead() = ahead(now())
 fun Instant.isWithinNext(
     duration: Duration,
     from: Instant,
-    includePast: Boolean = true
+    includePast: Boolean = true,
 ): Boolean = duration.ahead(from)
     .let { future -> (includePast || from < this) && this <= future }
 

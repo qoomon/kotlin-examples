@@ -1,7 +1,11 @@
 package me.qoomon.examples
 
-import io.mockk.*
-import org.junit.Ignore
+import io.mockk.confirmVerified
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -80,7 +84,7 @@ class MockkTest {
     }
 
     @Test
-    @Ignore("not supported yet")
+    @Disabled("not supported yet")
     fun `mock extension blocks`() {
         // Given
         val dummy = mockk<ServiceDummy> {
@@ -152,7 +156,7 @@ class MockkTest {
     }
 
     @Test
-    @Ignore("not supported yet")
+    @Disabled("not supported yet")
     fun `return Result for function with Any return type`() {
         val givenValue = Result.success(42)
         val service = mockk<ResultServiceDummy> {
@@ -186,6 +190,9 @@ class ListCapturingSlot<T : Any> private constructor(private val captureList: Mu
         get() = captureList.last()
 
     override fun toString(): String =
-        if (captureList.isEmpty()) "slot()"
-        else captureList.joinToString("\n") { "slot($it)" }
+        if (captureList.isEmpty()) {
+            "slot()"
+        } else {
+            captureList.joinToString("\n") { "slot($it)" }
+        }
 }

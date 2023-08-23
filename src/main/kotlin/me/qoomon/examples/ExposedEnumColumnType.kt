@@ -9,7 +9,7 @@ import org.postgresql.util.PGobject
 class EnumColumnType<T : Enum<T>>(
     private val sqlType: String,
     private val stringify: (T) -> String,
-    private val parse: (String) -> T
+    private val parse: (String) -> T,
 ) : ColumnType() {
     override fun sqlType() = sqlType
 
@@ -22,7 +22,7 @@ class EnumColumnType<T : Enum<T>>(
                     this.type = sqlType()
                     this.value = value as String?
                 }
-            }
+            },
         )
     }
 
@@ -38,9 +38,9 @@ inline fun <reified T : Enum<T>> Table.enum(
     name: String,
     sqlType: String,
     noinline stringify: (T) -> String = { it.name },
-    noinline parse: (String) -> T = { enumValueOf(it) }
+    noinline parse: (String) -> T = { enumValueOf(it) },
 ): Column<T> =
     registerColumn(
         name = name,
-        type = EnumColumnType(sqlType, stringify, parse)
+        type = EnumColumnType(sqlType, stringify, parse),
     )

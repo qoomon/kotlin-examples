@@ -25,7 +25,7 @@ class TestsTest {
             listOf(
                 TestCase(0),
                 TestCase(1),
-                TestCase(2)
+                TestCase(2),
             )
         }
 
@@ -59,7 +59,7 @@ class TestsTest {
             data class Case(val givenBase: Double, val givenExponent: Double, val expectedResult: Double)
             listOf(
                 Case(givenBase = 2.0, givenExponent = 2.0, expectedResult = 4.0),
-                Case(givenBase = 3.0, givenExponent = 4.0, expectedResult = 81.0)
+                Case(givenBase = 3.0, givenExponent = 4.0, expectedResult = 81.0),
             )
         },
         displayName = { "$givenBase^$givenExponent should be $expectedResult" },
