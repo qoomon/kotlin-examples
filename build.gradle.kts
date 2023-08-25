@@ -1,7 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
-import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
 plugins {
     application
@@ -264,38 +263,32 @@ tasks.check {
     dependsOn(tasks.jacocoTestCoverageVerification)
 }
 
-tasks {
-    register<Task>("version") {
-        doLast {
-            println(project.version)
-        }
-    }
-    // ./gradlew versionSet -Pversion=1.2.3
-    register<Task>("versionSet") {
-        doLast{
-            println("##### ${project.state.extraProperties.get("version")}")
-            val versionProperty = "version" to project.version
-            val propertyLineRegex =  "^${Regex.escape(versionProperty.first)}=.*$".toRegex(RegexOption.MULTILINE)
-            val propertyFile = project.file("gradle.properties")
-            val propertyFileContent = propertyFile.readText()
-
-            if (propertyFileContent.contains(propertyLineRegex).not()) {
-                throw IllegalStateException("Property ${versionProperty.first} not found in ${propertyFile.relativeTo(projectDir)}")
-            }
-
-            val propertyFileContentNew = propertyFileContent.replace(
-                propertyLineRegex,
-                "${versionProperty.first}=${versionProperty.second}",
-            )
-
-            if (propertyFileContentNew != propertyFileContent) {
-                propertyFile.writeText(propertyFileContentNew)
-            }
-
-            println("Property ${versionProperty.first} set to '${versionProperty.second}' in ${propertyFile.relativeTo(projectDir)}")
-        }
+// get version ./gradlew version
+tasks.register<Task>("version") {
+    doLast {
+        logger.lifecycle(project.version.toString())
     }
 }
+// set version ./gradlew version.set -Pversion=1.2.3
+tasks.register<Task>("version.set") {
+    doLast {
+        val propertyFile = project.file("gradle.properties")
+        val property = "version" to project.version
+        val propertyLineRegex = "^${Regex.escape(property.first)}=.*$".toRegex(RegexOption.MULTILINE)
+        val propertyFileContent = propertyFile.readText()
+
+        val propertyFileContentNew = if (propertyFileContent.contains(propertyLineRegex)) {
+            propertyFileContent.replace(propertyLineRegex, "${property.first}=${property.second}")
+        } else {
+            propertyFileContent + "\n" + "${property.first}=${property.second}"
+        }
+        if (propertyFileContentNew != propertyFileContent) {
+            propertyFile.writeText(propertyFileContentNew)
+        }
+        logger.lifecycle("Property ${property.first} set to '${property.second}' in ${propertyFile.relativeTo(projectDir)}")
+    }
+}
+
 
 // --- Helper Functions ------------------------------------------------------------------------------------------------
 
