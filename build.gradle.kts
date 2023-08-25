@@ -1,19 +1,21 @@
 @file:Suppress("UnstableApiUsage")
 
 import com.adarshr.gradle.testlogger.theme.ThemeType.MOCHA_PARALLEL
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE
-import org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
 
 plugins {
     application
-    kotlin("jvm") version "1.9.0"
-    kotlin("plugin.serialization") version "1.9.0"
+
+    val kotlinVersion = "1.9.10"
+    kotlin("jvm") version kotlinVersion
+    kotlin("plugin.serialization") version kotlinVersion
 
     id("com.dorongold.task-tree") version "2.1.1"
     id("com.github.ben-manes.versions") version "0.47.0"
     id("com.adarshr.test-logger") version "3.2.0"
 
-    id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
+//  TODO  id("io.gitlab.arturbosch.detekt").version("1.23.1")
+//  TODO   id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
 
     jacoco
     id("org.barfuin.gradle.jacocolog") version "3.1.0"
@@ -21,20 +23,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 
     idea
-}
-
-kotlin {
-    jvmToolchain {
-//        languageVersion.set(JavaLanguageVersion.of(20))
-    }
-    compilerOptions {
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
-        moduleName = project.name
-        optIn.add("kotlin.contracts.ExperimentalContracts")
-        optIn.add("kotlin.time.ExperimentalTime")
-        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
-        freeCompilerArgs.add("-Xcontext-receivers")
-    }
 }
 
 repositories {
@@ -88,19 +76,18 @@ dependencies {
     implementation("com.zaxxer:HikariCP:5.0.1")
 
     // Test Dependencies
-    val junitVersion = "5.10.0"
-    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
-
-    testImplementation("io.insert-koin:koin-test:$koinVersion")
-    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion")
+    testImplementation(kotlin("test-junit5"))
+//    val junitVersion = "5.10.0"
+//    testImplementation("org.junit.jupiter:junit-jupiter:$junitVersion")
+//    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+//    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+//    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+//    testRuntimeOnly("org.junit.platform:junit-platform-launcher:$junitVersion")
 
     val kotestVersion = "5.6.2"
-    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion") // for kotest core jvm assertions
-    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion") // for kotest framework
-    testImplementation("io.kotest:kotest-property-jvm:$kotestVersion") // for kotest property test
+    testImplementation("io.kotest:kotest-runner-junit5-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
+    testImplementation("io.kotest:kotest-property-jvm:$kotestVersion")
 
     val striktVersion = "0.34.1"
     testImplementation("io.strikt:strikt-core:$striktVersion")
@@ -114,10 +101,46 @@ dependencies {
     testImplementation("org.testcontainers:postgresql:$testContainersVersion")
 
     testImplementation("com.tngtech.archunit:archunit-junit5:1.1.0")
+
+    testImplementation("io.insert-koin:koin-test-junit5:$koinVersion") {
+        exclude("org.jetbrains.kotlin", "kotlin-test-junit")
+    }
 }
 
 application {
     mainClass.set("me.qoomon.examples.MainKt")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
+}
+
+kotlin {
+    jvmToolchain {
+//        languageVersion.set(JavaLanguageVersion.of(20))
+    }
+    compilerOptions {
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        moduleName = project.name
+        optIn.add("kotlin.contracts.ExperimentalContracts")
+        optIn.add("kotlin.time.ExperimentalTime")
+        optIn.add("kotlinx.serialization.ExperimentalSerializationApi")
+        freeCompilerArgs.add("-Xcontext-receivers")
+    }
+}
+
+tasks.processResources {
+    filesMatching("application.properties") {
+        // groovy template engine($ { placeholder })
+        expand(project.properties)
+        expand("version" to project.version)
+//            // groovy template engine (@placeholder@)
+//            filter<ReplaceTokens>(
+//                "tokens" to mapOf(
+//                    "version" to project.version
+//                )
+//            )
+    }
 }
 
 testing {
@@ -178,6 +201,17 @@ testing {
     }
 }
 
+tasks.test {
+    useJUnitPlatform()
+    // exclude("**/*IT.class")
+}
+//tasks.register<Test>("integrationTest") {
+//     group = LifecycleBasePlugin.VERIFICATION_GROUP
+//     description = "Runs the integration test suite."
+//     useJUnitPlatform()
+//     include("**/*IT.class")
+// }
+
 testlogger {
     theme = MOCHA_PARALLEL
     showSimpleNames = true
@@ -189,105 +223,76 @@ jacoco {
         "me.qoomon.demo.a.Base",
     )
 }
-
-ktlint {
-//    ignoreFailures.set(true)
-    version.set("0.50.0")
-    enableExperimentalRules.set(true)
-    reporters {
-        reporter(PLAIN)
-        reporter(CHECKSTYLE)
-    }
+tasks.jacocoTestReport {
 }
-
-tasks {
-
-    processResources {
-        filesMatching("application.properties") {
-            // groovy template engine($ { placeholder })
-            expand(project.properties)
-            expand("version" to project.version)
-
-//            // groovy template engine (@placeholder@)
-//            filter<ReplaceTokens>(
-//                "tokens" to mapOf(
-//                    "version" to project.version
-//                )
-//            )
-        }
-    }
-
-    withType<JavaExec> {
-        standardInput = System.`in`
-    }
-
-    withType<JavaExec>().configureEach {
-    }
-
-    shadowJar {
-        // archiveVersion = ""
-        // archiveClassifier = ""
-        mergeServiceFiles()
-        // relocate("org.postgresql.util", "shadow.org.postgresql.util")
-        minimize {
-            // exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
-        }
-    }
-
-    withType<Test>().configureEach {
-        useJUnitPlatform()
-        // exclude("**/*IT.class")
-    }
-
-    // test {
-    //     useJUnitPlatform()
-    // }
-    //
-    // register<Test>("integrationTest") {
-    //     group = VERIFICATION_GROUP
-    //     description = "Runs the integration test suite."
-    //     useJUnitPlatform()
-    //     include("**/*IT.class")
-    // }
-
-    check {
-        dependsOn(testing.suites)
-        dependsOn(jacocoTestReport)
-        dependsOn(jacocoTestCoverageVerification)
-    }
-
-    jacocoTestReport {
-    }
-
-    jacocoTestCoverageVerification {
-        violationRules {
-            rule {
-                element = "BUNDLE"
-                limit {
-                    counter = "INSTRUCTION"
-                    value = "COVEREDRATIO"
-                    minimum = 0.1.toBigDecimal()
-                }
-                exclude("me.qoomon.**")
+tasks.jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            element = "BUNDLE"
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = 0.1.toBigDecimal()
             }
         }
     }
+}
 
-    register<Task>("version") {
-        println(project.version)
+//ktlint {
+////    ignoreFailures.set(true)
+//    version = "0.50.0"
+//    enableExperimentalRules = true
+//    reporters {
+//        reporter(PLAIN)
+//        reporter(CHECKSTYLE)
+//    }
+//}
+
+tasks.shadowJar {
+    // archiveVersion = ""
+    // archiveClassifier = ""
+    mergeServiceFiles()
+    // relocate("org.postgresql.util", "shadow.org.postgresql.util")
+    minimize {
+        // exclude(dependency("org.jetbrains.exposed:exposed-jdbc"))
     }
+}
 
+tasks.check {
+    dependsOn(testing.suites)
+    dependsOn(tasks.jacocoTestReport)
+    dependsOn(tasks.jacocoTestCoverageVerification)
+}
+
+tasks {
+    register<Task>("version") {
+        doLast {
+            println(project.version)
+        }
+    }
+    // ./gradlew versionSet -Pversion=1.2.3
     register<Task>("versionSet") {
-        val propertyFile = project.file("gradle.properties")
-        val property = "version" to project.version
-        val propertyFileContent = propertyFile.readText()
-        val propertyFileContentNew = propertyFileContent.replace(
-            "^${Regex.escape(property.first)}=.*$".toRegex(RegexOption.MULTILINE),
-            "${property.first}=${property.second}",
-        )
-        if (propertyFileContentNew != propertyFileContent) {
-            propertyFile.writeText(propertyFileContentNew)
-            println("${property.first} set to '${property.second}' in ${propertyFile.relativeTo(projectDir)}")
+        doLast{
+            println("##### ${project.state.extraProperties.get("version")}")
+            val versionProperty = "version" to project.version
+            val propertyLineRegex =  "^${Regex.escape(versionProperty.first)}=.*$".toRegex(RegexOption.MULTILINE)
+            val propertyFile = project.file("gradle.properties")
+            val propertyFileContent = propertyFile.readText()
+
+            if (propertyFileContent.contains(propertyLineRegex).not()) {
+                throw IllegalStateException("Property ${versionProperty.first} not found in ${propertyFile.relativeTo(projectDir)}")
+            }
+
+            val propertyFileContentNew = propertyFileContent.replace(
+                propertyLineRegex,
+                "${versionProperty.first}=${versionProperty.second}",
+            )
+
+            if (propertyFileContentNew != propertyFileContent) {
+                propertyFile.writeText(propertyFileContentNew)
+            }
+
+            println("Property ${versionProperty.first} set to '${versionProperty.second}' in ${propertyFile.relativeTo(projectDir)}")
         }
     }
 }

@@ -19,7 +19,6 @@ class JUnitTest {
         val greeting = "Hello"
 
         // when
-
         val result = "$greeting $name"
 
         // then
@@ -33,7 +32,6 @@ class JUnitTest {
             val greeting = "Hello"
 
             // when
-
             val result = "$greeting ${case.name}"
 
             // then
