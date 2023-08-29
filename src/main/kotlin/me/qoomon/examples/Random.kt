@@ -1,3 +1,4 @@
+@file:Suppress("MagicNumber")
 package me.qoomon.examples
 
 import kotlin.random.Random

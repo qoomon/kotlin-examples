@@ -1,8 +1,9 @@
 package me.qoomon.examples
 
+@Suppress("UseCheckOrError")
 fun main() {
     val resultA: Result<String> = runCatching { "Hello, World" }
-    val resultB: Result<String> = runCatching { throw Exception("Boom!") }
+    val resultB: Result<String> = runCatching { throw IllegalStateException("Boom!") }
 
     resultA.onSuccess { result ->
         println(result)
@@ -11,10 +12,15 @@ fun main() {
         println(exception)
     }
 
+
     println(
         try {
-            throw Exception("Boom!")
-        } catch (exception: Exception) {
+            throw IllegalStateException("Boom!")
+        } catch (
+            @Suppress("SwallowedException")
+            exception: IllegalStateException
+        ) {
+
             "Fallback"
         },
     )

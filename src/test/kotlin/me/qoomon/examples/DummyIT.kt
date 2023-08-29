@@ -6,5 +6,6 @@ class DummyIT {
 
     @Test
     fun success() {
+        println("Hello World!")
     }
 }

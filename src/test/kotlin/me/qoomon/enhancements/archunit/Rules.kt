@@ -1,3 +1,5 @@
+@file:Suppress("NestedBlockDepth")
+
 package me.qoomon.enhancements.archunit
 
 import com.tngtech.archunit.core.domain.JavaClass
@@ -47,9 +49,13 @@ fun haveValidPackageInternalAnnotations(
 
         private fun JavaClass.isInternal() = try {
             reflect().kotlin.visibility == KVisibility.INTERNAL
-        } catch (ex: UnsupportedOperationException) {
+        } catch (
+            @Suppress("SwallowedException")
+            ex: UnsupportedOperationException
+        ) {
             false
         }
+
 
         private fun JavaMember.isInternal(): Boolean = try {
             when (val member = reflect()) {
@@ -58,11 +64,15 @@ fun haveValidPackageInternalAnnotations(
                 is Method -> member.kotlinFunction?.visibility == KVisibility.INTERNAL
                 else -> throw NotImplementedError("isInternal is not implemented for ${this::class.java}")
             }
-        } catch (ex: UnsupportedOperationException) {
+        } catch (
+            @Suppress("SwallowedException")
+            ex: UnsupportedOperationException
+        ) {
             false
         }
     }
 
+@Suppress("complexity.LongMethod")
 fun notAccessPackageInternalElementsFromOutside(
     packageInternalAnnotation: KClass<out Annotation>,
 ): ArchCondition<JavaClass> =
@@ -150,7 +160,10 @@ fun beInternal(): ArchCondition<JavaClass> =
 
         private fun Class<*>.isInternal() = try {
             this.kotlin.visibility == KVisibility.INTERNAL
-        } catch (ex: UnsupportedOperationException) {
+        } catch (
+            @Suppress("SwallowedException")
+            ex: UnsupportedOperationException
+        ) {
             false
         }
     }
@@ -174,7 +187,10 @@ fun beInternalMember(): ArchCondition<JavaMember> =
                 is Method -> kotlinFunction?.visibility == KVisibility.INTERNAL
                 else -> throw NotImplementedError("isInternal is not implemented for ${this::class.java}")
             }
-        } catch (ex: UnsupportedOperationException) {
+        } catch (
+            @Suppress("SwallowedException")
+            ex: UnsupportedOperationException
+        ) {
             false
         }
     }
@@ -206,6 +222,7 @@ private fun JavaMethod.anyParentIsAnnotatedWith(annotationType: Class<out Annota
 
 private fun JavaClass.isKotlinClass() = isMetaAnnotatedWith("kotlin.Metadata")
 
+@Suppress("ReturnCount")
 private fun JavaMethod.backingField(): JavaField? {
     if (owner.isKotlinClass()) {
         val fieldMethodMatch = Regex("^(?<fieldAction>get|is|set)(?<fieldName>[A-Z][^$]*).*").matchEntire(name)
@@ -229,4 +246,5 @@ private fun JavaMethod.backingField(): JavaField? {
     return null
 }
 
-private fun JavaClass.isPartOf(`package`: JavaPackage) = "${this.packageName}.".startsWith("${`package`.name}.")
+private fun JavaClass.isPartOf(@Suppress("FunctionParameterNaming") `package`: JavaPackage) =
+    "${this.packageName}.".startsWith("${`package`.name}.")

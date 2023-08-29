@@ -13,7 +13,7 @@ class StriktTest {
     @Test
     fun isFailure() {
         // Given
-        val function = { throw Error("Boom!") }
+        val function = { throw  @Suppress("TooGenericExceptionCaught") Error("Boom!") }
 
         // When
         val result = runCatching { function() }

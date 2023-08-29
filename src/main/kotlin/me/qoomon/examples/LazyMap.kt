@@ -45,9 +45,11 @@ class LazyCollection<V>(private val lazyCollection: Collection<Lazy<V>>) : Colle
         lazyCollection.map { it.value }.contains(element)
 }
 
+@Suppress("IteratorNotThrowingNoSuchElementException")
 class LazyIterator<V>(private val lazyIterator: Iterator<Lazy<V>>) : Iterator<V> {
 
     override fun hasNext() = lazyIterator.hasNext()
+
 
     override fun next(): V = lazyIterator.next().value
 }

@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber")
+
 package me.qoomon.examples
 
 import org.jetbrains.exposed.dao.UUIDEntity
@@ -19,12 +21,14 @@ object Shops : UUIDTable("shops") {
         .defaultExpression(CustomFunction("NOW", JavaInstantColumnType()))
 
     val name = varchar("name", 32)
+    val state = enumerationByName("status", 10, ShopStatus::class)
 }
 
 class Shop(id: EntityID<UUID>) : UUIDEntity(id) {
     var createdDate by Shops.createdDate
 
     var name by Shops.name
+    var state by Shops.state
 
     companion object : UUIDEntityClass<Shop>(Shops)
 }
@@ -64,4 +68,9 @@ class ShopService(private val shopDAO: ShopDAO) {
             getShopsByCreationDate(7.days).toList()
         }
     }
+}
+
+enum class ShopStatus {
+    OPEN,
+    CLOSED,
 }

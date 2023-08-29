@@ -23,7 +23,6 @@ import java.time.Instant
  * { "foo": { "bar": 1 } } or { "foo": [ { "bar": 1 }, { "buzz": 2 } ] }
  * ```
  */
-@Serializer(forClass = List::class)
 class SingleElementListSerializer<T : Any>(
     private val dataSerializer: KSerializer<T>,
 ) : KSerializer<List<T>> {
@@ -49,7 +48,6 @@ class SingleElementListSerializer<T : Any>(
     }
 }
 
-@Serializer(forClass = Instant::class)
 class InstantSerializer : KSerializer<Instant> {
     override val descriptor = PrimitiveSerialDescriptor("Instant", PrimitiveKind.STRING)
 
@@ -69,6 +67,7 @@ value class ProjectName private constructor(val value: String) {
     init {
         // checkNotNull() -> IllegalArgumentException
         // require -> IllegalStateException
+        @Suppress("MagicNumber")
         require(value.length <= 32) { "length is greater than 32" }
     }
 

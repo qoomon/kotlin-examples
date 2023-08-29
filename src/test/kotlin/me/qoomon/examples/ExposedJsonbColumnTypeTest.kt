@@ -1,6 +1,7 @@
 package me.qoomon.examples
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -8,6 +9,7 @@ import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.VarCharColumnType
 import org.jetbrains.exposed.sql.addLogger
+import org.jetbrains.exposed.sql.json.jsonb
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
@@ -24,7 +26,7 @@ data class UserData(
 object UsersTable : Table() {
     val id = varchar("id", length = 10)
     val name = varchar("name", length = 50)
-    val data = jsonb("data", UserData.serializer())
+    val data = jsonb<UserData>("data", Json)
 
     init {
         index(false, Column<String>(this, "(data ->> 'rank')", VarCharColumnType()))

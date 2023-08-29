@@ -40,10 +40,3 @@ private val <T : Any> KClass<T>.boxedProperty: KProperty1<T, *>
     else {
         this.declaredFieldProperties.first().apply { isAccessible = true }
     }
-
-private val <T : Any> KClass<T>.isValue_safe: Boolean
-    get() = try {
-        isValue
-    } catch (_: UnsupportedOperationException) {
-        false
-    }

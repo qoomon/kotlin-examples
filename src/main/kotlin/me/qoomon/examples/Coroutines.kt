@@ -1,3 +1,4 @@
+@file:Suppress("MagicNumber")
 package me.qoomon.examples
 
 import io.github.oshai.kotlinlogging.KLogger
@@ -16,11 +17,12 @@ fun main() {
     MDC.put("ContextInfo", "Hello!")
     log.info { "START" }
     runBlocking(IO + MDCContext()) {
-        (0 until 100).forEach {
+        for (it in 0 until 100) {
             launch {
                 log.info { "$it started" }
                 delay(100)
-                if (Random.nextDouble() < 0.1) throw Exception("$it throws exception")
+                if (Random.nextDouble() < 0.1)
+                    throw  @Suppress("TooGenericExceptionCaught") Exception("$it throws exception")
                 log.info { "$it finished" }
             }
         }

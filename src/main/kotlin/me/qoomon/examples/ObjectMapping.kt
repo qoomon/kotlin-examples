@@ -5,6 +5,7 @@ import kotlin.time.measureTime
 data class Dummy(val foo: String, val bar: Int)
 data class DummyDTO(val foo: String)
 
+@Suppress("MagicNumber")
 fun main() {
     val times = 10_00_000
 

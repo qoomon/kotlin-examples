@@ -13,7 +13,7 @@ plugins {
     id("com.github.ben-manes.versions") version "0.47.0"
     id("com.adarshr.test-logger") version "3.2.0"
 
-//  TODO  id("io.gitlab.arturbosch.detekt").version("1.23.1")
+    id("io.gitlab.arturbosch.detekt").version("1.23.1")
 //  TODO   id("org.jlleitschuh.gradle.ktlint") version "11.5.1"
 
     jacoco
@@ -70,6 +70,7 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-java-time:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-json:$exposedVersion")
     implementation("org.postgresql:postgresql:42.6.0")
     implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")
     implementation("com.zaxxer:HikariCP:5.0.1")

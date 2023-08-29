@@ -17,32 +17,44 @@ import kotlin.contracts.contract
  * ```
  */
 
-class ConditionsContext constructor(val lazyContextMessage: () -> Any) {
 
-    fun require(value: Boolean, lazyMessage: () -> Any) {
+class Preconditions constructor(val message: () -> Any) {
+
+    fun require(value: Boolean, message: () -> Any) {
         contract {
             returns() implies value
         }
-        kotlin.require(value) { lazyMessage().toString().appendContext() }
+        kotlin.require(value) { message().toString() + "\n" + this.message() }
     }
 
-    fun check(value: Boolean, lazyMessage: () -> Any) {
+    fun error(message: Any): Nothing = kotlin.error(message.toString() + "\n" + this.message())
+}
+
+class Postconditions constructor(val message: () -> Any) {
+
+    fun check(value: Boolean, message: () -> Any) {
         contract {
             returns() implies value
         }
-        kotlin.check(value) { lazyMessage().toString().appendContext() }
+        kotlin.check(value) { message().toString() + "\n" + this.message() }
     }
 
-    fun error(message: Any): Nothing = kotlin.error(message.toString().appendContext())
-
-    private fun String.appendContext() = this + "\n" +
-        "\t\t" + lazyContextMessage()
+    fun error(message: Any): Nothing = kotlin.error(message.toString() + "\n" + this.message())
 }
 
-fun preconditionsContext(contextMessage: Any, block: ConditionsContext.() -> Unit) {
-    preconditionsContext({ contextMessage }, block)
+fun preconditionsContext(message: Any, block: Preconditions.() -> Unit) {
+    preconditionsContext({ message }, block)
 }
 
-fun preconditionsContext(lazyContextMessage: () -> Any, block: ConditionsContext.() -> Unit) {
-    ConditionsContext(lazyContextMessage).apply { block() }
+fun preconditionsContext(message: () -> Any, block: Preconditions.() -> Unit) {
+    Preconditions(message).apply { block() }
 }
+
+fun postconditionsContext(message: Any, block: Postconditions.() -> Unit) {
+    postconditionsContext({ message }, block)
+}
+
+fun postconditionsContext(message: () -> Any, block: Postconditions.() -> Unit) {
+    Postconditions(message).apply { block() }
+}
+

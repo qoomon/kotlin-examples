@@ -1,3 +1,4 @@
+@file:Suppress("complexity.TooManyFunctions")
 package me.qoomon.enhancements.kotlinlogging
 
 import io.github.oshai.kotlinlogging.KLogger

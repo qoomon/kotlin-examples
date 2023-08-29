@@ -23,7 +23,7 @@ fun <T> retry(
     for (i in 0 until maxRetries) {
         try {
             return block(i)
-        } catch (exception: Throwable) {
+        } catch (@Suppress("TooGenericExceptionCaught") exception: Exception) {
             if (catch.any { it.isInstance(exception) }) {
                 suppressedExceptions.add(exception)
                 Thread.sleep(delay.inWholeMilliseconds)
@@ -54,7 +54,7 @@ fun <T> tryAll(
     for (attempt in attempts) {
         try {
             return attempt()
-        } catch (exception: Throwable) {
+        } catch (@Suppress("TooGenericExceptionCaught") exception: Exception) {
             if (catch.any { it.isInstance(exception) }) {
                 suppressedExceptions.add(exception)
             } else {

@@ -13,6 +13,7 @@ import kotlin.time.Duration
 private val LOG = KotlinLogging.logger {}
 
 open class AppContext(
+    @Suppress("UnusedPrivateProperty")
     private val log: KLogger = LOG,
 ) {
 
