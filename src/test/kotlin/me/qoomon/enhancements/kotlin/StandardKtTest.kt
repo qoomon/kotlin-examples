@@ -1,9 +1,12 @@
 package me.qoomon.enhancements.kotlin
 
-import org.junit.jupiter.api.Test
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.test.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
 
 internal class StandardKtTest {
 
@@ -48,16 +51,29 @@ internal class StandardKtTest {
     }
 
     @Test
-    fun `letIf do not let if predicate is false`() {
-        // Given
-        val subject = "Hello"
-
+    fun `Result_rethrow throws the corresponding exception`() {
         // When
-        val result = subject.letIf({ length == 0 }) {
-            "$this World"
+        val result = runCatching {
+            runCatching { TODO() }
+                .rethrow<CancellationException, _>()
+                .rethrow<NotImplementedError, _>()
         }
 
         // Then
-        expectThat(result).isEqualTo("Hello")
+        expectThat(result).isFailure().isA<NotImplementedError>()
+    }
+
+    @Test
+    fun `runCatchingExcept throws the corresponding exception`() {
+        // When
+        val result = runCatching {
+            runCatchingExcept(
+                CancellationException::class,
+                NotImplementedError::class,
+            ) { TODO() }
+        }
+
+        // Then
+        expectThat(result).isFailure().isA<NotImplementedError>()
     }
 }
